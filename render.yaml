@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: smartkrishi
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: SMARTKRISHI_ENV
+        value: production
+      - key: SMARTKRISHI_ADMIN_USERNAME
+        value: admin
+      - key: SMARTKRISHI_ADMIN_PASSWORD
+        generateValue: true
+      - key: SMARTKRISHI_TOKEN_SECRET
+        generateValue: true

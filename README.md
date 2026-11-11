@@ -137,6 +137,13 @@ npm run test
 npm run build
 ```
 
+## Public Cloud Deployment (Access from Any Computer or Phone)
+
+Because SmartKrishi runs a Python FastAPI + Scikit-learn backend alongside the React UI, it includes a unified single-container deployment setup ([Dockerfile](Dockerfile), [render.yaml](render.yaml), [railway.json](railway.json)) where FastAPI serves both `/api/*` and the built `frontend/dist` bundle over HTTPS:
+
+1. **Render (Free Web Service):** Create a new Blueprint or Web Service on Render connected to `https://github.com/Zahidtaj/SmartKrishi` (`render.yaml` auto-configures the Docker build, `/api/health` check, and generated secrets).
+2. **Railway:** Connect `https://github.com/Zahidtaj/SmartKrishi` in Railway (`railway.json` + `Dockerfile` configure build, port binding, and `/api/health` checks) and set `SMARTKRISHI_ADMIN_PASSWORD` and `SMARTKRISHI_TOKEN_SECRET`.
+
 ## API Endpoints Overview
 
 - `GET /api/health` — Database and ML model status

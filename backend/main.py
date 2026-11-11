@@ -2,13 +2,14 @@
 
 from contextlib import asynccontextmanager
 import logging
+from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
-from backend.config import get_settings
+from backend.config import PROJECT_ROOT, get_settings
 from backend.routers import admin, crops, health, knowledge, locations, recommendations
 from backend.seed import initialize_and_seed
 from ml.predictor import CropMLPredictor, ModelLoadError
@@ -108,6 +109,18 @@ def create_app() -> FastAPI:
     app.include_router(knowledge.knowledge_router)
     app.include_router(knowledge.feedback_router)
     app.include_router(admin.router)
+
+    frontend_dist = (PROJECT_ROOT / "frontend" / "dist").resolve()
+    if frontend_dist.is_dir() and (frontend_dist / "index.html").is_file():
+        @app.get("/{full_path:path}", include_in_schema=False)
+        def serve_spa(full_path: str):
+            if full_path == "api" or full_path.startswith("api/"):
+                raise HTTPException(status_code=404, detail="API endpoint not found.")
+            if full_path:
+                candidate = (frontend_dist / full_path).resolve()
+                if candidate.is_relative_to(frontend_dist) and candidate.is_file():
+                    return FileResponse(candidate)
+            return FileResponse(frontend_dist / "index.html")
 
     return app
 

@@ -71,3 +71,19 @@ def test_knowledge_and_feedback_endpoints(client):
     )
     assert fb.status_code == 201
     assert fb.json()["review_status"] == "pending"
+
+
+def test_spa_routes_and_unknown_api_404(client):
+    # Unknown /api/* routes must return JSON 404 rather than HTML SPA fallback
+    unknown_api = client.get("/api/nonexistent-route")
+    assert unknown_api.status_code == 404
+    assert unknown_api.json()["code"] == "HTTP_404"
+
+    # When frontend/dist/index.html is built, root and SPA deep links serve HTML
+    root_resp = client.get("/")
+    assert root_resp.status_code == 200
+    assert "text/html" in root_resp.headers.get("content-type", "")
+
+    deep_link = client.get("/recommend")
+    assert deep_link.status_code == 200
+    assert "text/html" in deep_link.headers.get("content-type", "")
