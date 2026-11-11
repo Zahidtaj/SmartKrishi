@@ -1,0 +1,159 @@
+{
+  "model_type": "RandomForestClassifier",
+  "train_samples": 1760,
+  "test_samples": 440,
+  "num_classes": 22,
+  "train_accuracy": 1.0,
+  "test_accuracy": 0.995455,
+  "macro_precision": 0.995671,
+  "macro_recall": 0.995455,
+  "macro_f1": 0.995452,
+  "weighted_f1": 0.995452,
+  "cv_folds": 5,
+  "cv_macro_f1_mean": 0.991968,
+  "cv_macro_f1_std": 0.006668,
+  "overfitting_gap": 0.004545,
+  "feature_importances": {
+    "N": 0.101541,
+    "P": 0.15298,
+    "K": 0.181636,
+    "temperature": 0.07007,
+    "humidity": 0.220513,
+    "ph": 0.050251,
+    "rainfall": 0.223009
+  },
+  "per_class_metrics": {
+    "apple": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "banana": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "blackgram": {
+      "precision": 1.0,
+      "recall": 0.95,
+      "f1_score": 0.9744,
+      "support": 20
+    },
+    "chickpea": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "coconut": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "coffee": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "cotton": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "grapes": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "jute": {
+      "precision": 0.9524,
+      "recall": 1.0,
+      "f1_score": 0.9756,
+      "support": 20
+    },
+    "kidneybeans": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "lentil": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "maize": {
+      "precision": 0.9524,
+      "recall": 1.0,
+      "f1_score": 0.9756,
+      "support": 20
+    },
+    "mango": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "mothbeans": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "mungbean": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "muskmelon": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "orange": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "papaya": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "pigeonpeas": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "pomegranate": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    },
+    "rice": {
+      "precision": 1.0,
+      "recall": 0.95,
+      "f1_score": 0.9744,
+      "support": 20
+    },
+    "watermelon": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "support": 20
+    }
+  }
+}

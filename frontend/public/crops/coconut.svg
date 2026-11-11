@@ -1,0 +1,13 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120' fill='none'>
+  <rect width='120' height='120' rx='12' fill='#0E1411'/>
+  <circle cx='60' cy='60' r='48' stroke='#2D6A4F' stroke-opacity='0.45' stroke-width='1.2'/>
+  
+      <path d='M60 100C60 74 58 56 60 40' stroke='#85948A' stroke-width='3.2' stroke-linecap='round'/>
+      <path d='M60 42C44 34 32 38 26 48' stroke='#52B788' stroke-width='2.4' stroke-linecap='round'/>
+      <path d='M60 42C48 26 36 24 28 28' stroke='#52B788' fill='none' stroke-width='2.4' stroke-linecap='round'/>
+      <path d='M60 42C72 26 84 24 92 28' stroke='#52B788' fill='none' stroke-width='2.4' stroke-linecap='round'/>
+      <path d='M60 42C76 34 88 38 94 48' stroke='#52B788' stroke-width='2.4' stroke-linecap='round'/>
+      <circle cx='54' cy='48' r='5' fill='#D99B4E' fill-opacity='0.65'/>
+      <circle cx='66' cy='48' r='5' fill='#D99B4E' fill-opacity='0.65'/>
+    
+</svg>

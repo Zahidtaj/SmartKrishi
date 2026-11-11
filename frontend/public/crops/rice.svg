@@ -1,0 +1,12 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120' fill='none'>
+  <rect width='120' height='120' rx='12' fill='#0E1411'/>
+  <circle cx='60' cy='60' r='48' stroke='#2D6A4F' stroke-opacity='0.45' stroke-width='1.2'/>
+  
+      <path d='M60 100V34' stroke='#52B788' stroke-width='2.6' stroke-linecap='round'/>
+      <path d='M60 54C49 48 44 40 44 31C52 34 57 42 60 54Z' fill='#52B788' fill-opacity='0.3' stroke='#52B788' stroke-width='2'/>
+      <path d='M60 44C71 38 76 30 76 21C68 24 63 32 60 44Z' fill='#52B788' fill-opacity='0.45' stroke='#52B788' stroke-width='2'/>
+      <ellipse cx='52' cy='28' rx='4' ry='7' transform='rotate(-25 52 28)' fill='#D99B4E' fill-opacity='0.75'/>
+      <ellipse cx='68' cy='26' rx='4' ry='7' transform='rotate(25 68 26)' fill='#D99B4E' fill-opacity='0.75'/>
+      <ellipse cx='60' cy='20' rx='4' ry='8' fill='#D99B4E' fill-opacity='0.85'/>
+    
+</svg>

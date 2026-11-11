@@ -1,0 +1,23 @@
+{
+  "dataset_name": "Crop Recommendation Dataset (N-P-K-Weather-pH)",
+  "file_path": "datasets/raw/crop_recommendation.csv",
+  "source_url": "https://raw.githubusercontent.com/Gladiator07/Harvestify/master/Data-processed/crop_recommendation.csv",
+  "origin_attribution": "Derived from the Indian Chamber of Food and Agriculture / public Kaggle Crop Recommendation dataset (originally compiled by Atharva Ingle from rainfall, climate, and soil nutrient distributions in India).",
+  "license": "CC0 / Public Domain (open educational & research distribution via Harvestify / Kaggle)",
+  "record_count": 2200,
+  "crop_classes": 22,
+  "features": [
+    {"name": "N", "description": "Ratio of Nitrogen content in soil", "unit": "kg/ha (dataset scale 0-140)"},
+    {"name": "P", "description": "Ratio of Phosphorous content in soil", "unit": "kg/ha (dataset scale 5-145)"},
+    {"name": "K", "description": "Ratio of Potassium content in soil", "unit": "kg/ha (dataset scale 5-205)"},
+    {"name": "temperature", "description": "Ambient temperature", "unit": "degrees Celsius"},
+    {"name": "humidity", "description": "Relative humidity", "unit": "%"},
+    {"name": "ph", "description": "Soil pH value", "unit": "pH units (0-14)"},
+    {"name": "rainfall", "description": "Rainfall", "unit": "mm"}
+  ],
+  "known_limitations": [
+    "Does not include soil texture class (Red, Black, Laterite, Alluvial), growing season (Kharif/Rabi/Zaid), irrigation source, or taluk-level regional constraints.",
+    "Contains synthetic/augmented uniform-like distributions around crop reference ranges rather than raw multi-year field trials; therefore ML predictions alone must NOT be treated as standalone agronomic advice.",
+    "Does not include Karnataka-specific staple dryland crops such as Ragi (Finger Millet), Jowar (Sorghum), Groundnut, or Arecanut; those are handled explicitly through the configurable agronomic rule engine and transparent fallback labeling."
+  ]
+}

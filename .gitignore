@@ -1,0 +1,45 @@
+# Python / Virtual Environments
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+
+# Local SQLite Databases (may contain user/feedback records)
+*.db
+*.sqlite
+*.sqlite3
+backend/data/*.db
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/coverage/
+
+# Impeccable / tooling runtime artifacts
+.impeccable/mocks/
+.impeccable/review/
+.impeccable/questions/
+.impeccable/config.local.json
+.taste-skill/
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
