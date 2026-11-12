@@ -1,363 +1,568 @@
-"""Configurable agricultural rule engine evaluating region, soil, pH, NPK, season, water, and climate."""
+"""Transparent observation-based agronomic compatibility rules and explanations."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
-from backend.models import Crop, Location, RegionalCropRule
-from backend.rules.scoring import (
-    DEFAULT_WEIGHTS,
-    ML_BLEND_FACTOR,
-    ScoringWeights,
-    classify_suitability,
-    range_proximity_score,
-)
+from backend.models import Crop, CropRequirement, Location, RegionalCropRule
 
 
 @dataclass
-class EvaluatedCropCandidate:
+class EvaluationContext:
+    location: Location
+    season: str
+    soil_color: str
+    soil_texture: str
+    drainage_after_rain: str
+    moisture_retention: str
+    soil_depth: str
+    visible_stones: str
+    waterlogging_issue: str
+    erosion_issue: str
+    land_topography: str
+    water_source: str
+    water_reliability: str
+    intended_sowing_month: str | None
+    duration_preference: str
+    farming_priority: str
+    previous_crop: str | None
+    previous_crop_success: str | None
+    drought_history: str | None
+    flood_history: str | None
+    pest_disease_history: str | None
+    soil_observation: dict[str, Any]
+    weather_intel: dict[str, Any]
+
+
+@dataclass
+class RuleEvaluation:
     crop: Crop
-    hard_excluded: bool
-    exclusion_reason_en: str | None
-    exclusion_reason_kn: str | None
-    illustrative_score: float
-    suitability_category: str
-    ml_probability: float | None
-    dimension_scores: dict[str, float]
-    reasons_en: list[str]
-    reasons_kn: list[str]
-    limitations_en: list[str]
-    limitations_kn: list[str]
-    conflict_flags: list[str]
+    hard_rejected: bool
+    rejection_reasons_en: list[str] = field(default_factory=list)
+    rejection_reasons_kn: list[str] = field(default_factory=list)
+    location_score: float = 0.0
+    soil_land_score: float = 0.0
+    water_score: float = 0.0
+    seasonal_score: float = 0.0
+    climate_score: float = 0.0
+    priority_score: float = 0.0
+    reasons_en: list[str] = field(default_factory=list)
+    reasons_kn: list[str] = field(default_factory=list)
+    limitations_en: list[str] = field(default_factory=list)
+    limitations_kn: list[str] = field(default_factory=list)
+    missing_info_en: list[str] = field(default_factory=list)
+    missing_info_kn: list[str] = field(default_factory=list)
+    conflict_flags: list[str] = field(default_factory=list)
+    compatibility_badges: dict[str, str] = field(default_factory=dict)
 
 
-def _water_level_rank(water_availability: str) -> int:
-    mapping = {
-        "Rainfed": 1,
-        "Limited irrigation": 2,
-        "Moderate irrigation": 3,
-        "Assured irrigation": 4,
-    }
-    return mapping.get(water_availability, 1)
+DEPTH_RANK = {"shallow": 1, "medium": 2, "deep": 3}
+
+SOIL_COLOR_TO_BROAD_GROUPS: dict[str, set[str]] = {
+    "red": {"Red", "Loamy", "Laterite", "Sandy"},
+    "reddish_brown": {"Red", "Laterite", "Loamy", "Alluvial"},
+    "dark_black": {"Black", "Clay"},
+    "brown": {"Loamy", "Alluvial", "Black", "Red"},
+    "yellowish": {"Red", "Laterite", "Sandy", "Loamy"},
+    "grey": {"Clay", "Alluvial", "Black"},
+    "sandy_pale": {"Sandy", "Alluvial", "Red"},
+    "mixed_uncertain": set(),
+}
 
 
-def evaluate_crop_against_rules(
+def _effective_water_tier(ctx: EvaluationContext) -> str:
+    """Derive effective moisture/irrigation regime from source, reliability, and zone rainfall."""
+    annual_rain = ctx.location.normal_annual_rainfall_mm or 700.0
+    if ctx.water_source == "rainfed":
+        if annual_rain >= 2000.0 and ctx.season in ("Kharif", "Perennial"):
+            return "rainfed_humid"
+        return "rainfed_scarce" if ctx.water_reliability == "limited" or annual_rain < 650.0 else "rainfed_normal"
+    if ctx.water_reliability == "throughout_season":
+        return "assured"
+    if ctx.water_reliability == "certain_months":
+        return "moderate"
+    if ctx.water_reliability == "limited":
+        return "limited"
+    return "uncertain"
+
+
+def _effective_drainage(ctx: EvaluationContext) -> str:
+    return str(ctx.soil_observation.get("effective_drainage", "unknown"))
+
+
+def evaluate_crop_observation_rules(
     crop: Crop,
-    location: Location | None,
+    req: CropRequirement,
     rules: list[RegionalCropRule],
-    inputs: dict[str, Any],
-    ml_probability: float | None,
-    reduced_info: bool,
-    weights: ScoringWeights = DEFAULT_WEIGHTS,
-) -> EvaluatedCropCandidate:
-    """Evaluate a single crop against documented agronomic rules and hard constraints."""
-    req = crop.requirement
-    if req is None:
-        return EvaluatedCropCandidate(
-            crop=crop,
-            hard_excluded=True,
-            exclusion_reason_en="Agronomic requirement profile missing.",
-            exclusion_reason_kn="ಬೆಳೆ ಅಗತ್ಯ ಮಾಹಿತಿ ಲಭ್ಯವಿಲ್ಲ.",
-            illustrative_score=0.0,
-            suitability_category="Unavailable",
-            ml_probability=ml_probability,
-            dimension_scores={},
-            reasons_en=[],
-            reasons_kn=[],
-            limitations_en=[],
-            limitations_kn=[],
-            conflict_flags=["missing_profile"],
-        )
+    ctx: EvaluationContext,
+) -> RuleEvaluation:
+    """Evaluate a crop across all 7 transparent agronomic rule stages."""
+    ev = RuleEvaluation(crop=crop, hard_rejected=False)
+    badges: dict[str, str] = {}
 
-    reasons_en: list[str] = []
-    reasons_kn: list[str] = []
-    limitations_en: list[str] = []
-    limitations_kn: list[str] = []
-    conflict_flags: list[str] = []
-
-    state = inputs["state"]
-    season = inputs["season"]
-    soil_type = inputs["soil_type"]
-    water_avail = inputs["water_availability"]
-    ph = inputs.get("ph")
-    n_val = inputs.get("nitrogen")
-    p_val = inputs.get("phosphorus")
-    k_val = inputs.get("potassium")
-    temp = inputs.get("temperature")
-    humidity = inputs.get("humidity")
-    rainfall = inputs.get("rainfall")
-
-    # 1. Regional Rule Evaluation (hard guard against non-Karnataka/restricted crops)
-    zone_code = location.zone_code if location else None
-    active_rules = [r for r in rules if r.is_active and r.state.lower() == state.lower()]
-    restricted_rules = [r for r in active_rules if r.suitability_level == "restricted"]
-    if restricted_rules and not [r for r in active_rules if r.suitability_level != "restricted"]:
-        return EvaluatedCropCandidate(
-            crop=crop,
-            hard_excluded=True,
-            exclusion_reason_en=restricted_rules[0].rule_notes_en,
-            exclusion_reason_kn=restricted_rules[0].rule_notes_kn,
-            illustrative_score=0.0,
-            suitability_category="Regionally Restricted",
-            ml_probability=ml_probability,
-            dimension_scores={},
-            reasons_en=[],
-            reasons_kn=[],
-            limitations_en=[restricted_rules[0].rule_notes_en],
-            limitations_kn=[restricted_rules[0].rule_notes_kn],
-            conflict_flags=["region_restricted"],
-        )
-
-    zone_season_matches = [
-        r for r in active_rules
-        if (r.agro_climatic_zone is None or r.agro_climatic_zone == zone_code)
-        and r.season == season
-        and r.suitability_level in ("recommended", "conditional")
+    # =========================================================================
+    # STAGE 1: Regional & Agro-Climatic Zone Compatibility
+    # =========================================================================
+    restricted_rules = [r for r in rules if r.suitability_level == "restricted"]
+    zone_season_rules = [
+        r for r in rules
+        if r.agro_climatic_zone == ctx.location.zone_code
+        and r.season == ctx.season
+        and r.suitability_level == "recommended"
     ]
-    zone_any_season = [
-        r for r in active_rules
-        if (r.agro_climatic_zone is None or r.agro_climatic_zone == zone_code)
+    zone_any_rules = [
+        r for r in rules
+        if r.agro_climatic_zone == ctx.location.zone_code
         and r.suitability_level in ("recommended", "conditional")
     ]
 
-    if zone_season_matches:
-        location_score = 1.0
-        reasons_en.append(
-            f"Documented for {location.agro_climatic_zone if location else state} ({zone_code or state}) in {season}."
+    if restricted_rules and not zone_any_rules:
+        ev.hard_rejected = True
+        ev.rejection_reasons_en.append(
+            f"{crop.name_en} is outside verified Karnataka agro-climatic cultivation zones."
         )
-        reasons_kn.append(
-            f"{location.agro_climatic_zone if location else state} ವಲಯದ {season} ಹಂಗಾಮಿಗೆ ದಾಖಲಿತ ಬೆಳೆಯಾಗಿದೆ."
+        ev.rejection_reasons_kn.append(
+            f"{crop.name_kn} ಕರ್ನಾಟಕದ ಪ್ರಮಾಣಿತ ಕೃಷಿ-ಹವಾಮಾನ ವಲಯಗಳಿಗೆ ಸೂಕ್ತವಲ್ಲ."
         )
-    elif zone_any_season:
-        location_score = 0.60
-    else:
-        location_score = 0.25
-        conflict_flags.append("zone_unverified")
-        limitations_en.append(
-            f"Not listed as a primary zone crop for {zone_code or state}; confirm adaptability with local KVK/RSK."
-        )
-        limitations_kn.append(
-            f"ಈ ಕೃಷಿ-ಹವಾಮಾನ ವಲಯಕ್ಕೆ ಪ್ರಮುಖ ಬೆಳೆಯಾಗಿ ದಾಖಲಾಗಿಲ್ಲ; ಸ್ಥಳೀಯ ರೈತ ಸಂಪರ್ಕ ಕೇಂದ್ರದಲ್ಲಿ ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ."
-        )
+        ev.conflict_flags.append("outside_karnataka_zone")
+        badges["region"] = "not_suited"
+        ev.compatibility_badges = badges
+        return ev
 
-    # 2. Season Compatibility (Hard exclusion for incompatible non-perennial seasonal crops)
-    if season in req.suitable_seasons:
-        seasonal_score = 1.0
-        reasons_en.append(f"Compatible with {season} sowing season.")
-        reasons_kn.append(f"{season} ಬಿತ್ತನೆ ಹಂಗಾಮಿಗೆ ಸೂಕ್ತವಾಗಿದೆ.")
-    elif "Perennial" in req.suitable_seasons and season in ("Kharif", "Rabi"):
-        seasonal_score = 0.70
-        limitations_en.append(
-            f"{crop.name_en} is a multi-season/perennial crop ({crop.growing_duration_days_min}-{crop.growing_duration_days_max} days)."
+    if zone_season_rules:
+        ev.location_score = 100.0
+        badges["region"] = "recommended"
+        ev.reasons_en.append(
+            f"Documented crop in {ctx.location.agro_climatic_zone} ({ctx.location.zone_code}) for {ctx.season} season."
         )
-        limitations_kn.append(
-            f"{crop.name_kn} ಬಹುವಾರ್ಷಿಕ/ದೀರ್ಘಾವಧಿ ಬೆಳೆಯಾಗಿದೆ ({crop.growing_duration_days_min}-{crop.growing_duration_days_max} ದಿನಗಳು)."
+        ev.reasons_kn.append(
+            f"{ctx.location.agro_climatic_zone} ({ctx.location.zone_code}) ವಲಯದಲ್ಲಿ {ctx.season} ಹಂಗಾಮಿಗೆ ಪ್ರಮಾಣಿತ ಬೆಳೆ."
+        )
+    elif zone_any_rules:
+        ev.location_score = 62.0
+        badges["region"] = "conditional"
+        ev.limitations_en.append(
+            f"Grown in {ctx.location.agro_climatic_zone}, though {ctx.season} is not its primary documented window."
+        )
+        ev.limitations_kn.append(
+            f"ಈ ವಲಯದಲ್ಲಿ ಬೆಳೆಯಲಾಗುತ್ತದೆಯಾದರೂ {ctx.season} ಮುಖ್ಯ ಹಂಗಾಮಲ್ಲ."
         )
     else:
-        return EvaluatedCropCandidate(
-            crop=crop,
-            hard_excluded=True,
-            exclusion_reason_en=f"Season mismatch: {crop.name_en} is documented for {', '.join(req.suitable_seasons)}, not {season}.",
-            exclusion_reason_kn=f"ಹಂಗಾಮು ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ: {crop.name_kn} ಬೆಳೆಗೆ {', '.join(req.suitable_seasons)} ಹಂಗಾಮು ಸೂಕ್ತ.",
-            illustrative_score=0.0,
-            suitability_category="Season Mismatch",
-            ml_probability=ml_probability,
-            dimension_scores={},
-            reasons_en=[],
-            reasons_kn=[],
-            limitations_en=[],
-            limitations_kn=[],
-            conflict_flags=["season_mismatch"],
+        ev.location_score = 22.0
+        badges["region"] = "low_fit"
+        ev.limitations_en.append(
+            f"Not listed as a major recommended crop for {ctx.location.taluk} ({ctx.location.zone_code}) in UAS/KSDA references."
+        )
+        ev.limitations_kn.append(
+            f"{ctx.location.taluk} ({ctx.location.zone_code}) ವಲಯಕ್ಕೆ ಪ್ರಮುಖ ಶಿಫಾರಸು ಬೆಳೆ ಪಟ್ಟಿಯಲ್ಲಿಲ್ಲ."
         )
 
-    # 3. Water Availability Compatibility (Hard exclusion if high-water crop under rainfed dry conditions)
-    supported_water = req.supported_water_levels
-    user_water_rank = _water_level_rank(water_avail)
-    min_req_rank = min(_water_level_rank(w) for w in supported_water) if supported_water else 1
-    eff_rainfall = rainfall if rainfall is not None else (location.normal_annual_rainfall_mm if location else None)
-
-    if water_avail in supported_water:
-        water_score = 1.0
-        reasons_en.append(
-            f"Water demand ({crop.water_requirement_level}: {crop.water_requirement_mm_min}-{crop.water_requirement_mm_max} mm) matches {water_avail.lower()}."
-        )
-        reasons_kn.append(
-            f"ನೀರಿನ ಅಗತ್ಯ ({crop.water_requirement_mm_min}-{crop.water_requirement_mm_max} ಮಿ.ಮೀ) ಲಭ್ಯವಿರುವ {water_avail} ಸ್ಥಿತಿಗೆ ಹೊಂದುತ್ತದೆ."
-        )
-    elif water_avail == "Rainfed" and eff_rainfall is not None and eff_rainfall >= 1500 and crop.water_requirement_level != "High":
-        water_score = 0.75
-    elif user_water_rank < min_req_rank:
-        # High-water crops like Sugarcane, Banana, Rice in Rainfed dryland cannot override water deficit
-        if crop.water_requirement_level == "High" and water_avail in ("Rainfed", "Limited irrigation"):
-            # Allow Rainfed rice ONLY in heavy rainfall Coastal/Malnad zones (>1400mm)
-            if crop.crop_key == "rice" and zone_code in ("KA-Z9", "KA-Z10") and (eff_rainfall or 0) >= 1400 and water_avail == "Rainfed":
-                water_score = 0.75
-                limitations_en.append("Rainfed paddy depends strictly on timely high monsoon rainfall in coastal/malnad belts.")
-                limitations_kn.append("ಮಳೆಯಾಶ್ರಿತ ಭತ್ತವು ಮಲೆನಾಡು/ಕರಾವಳಿಯ ಸಮಯೋಚಿತ ಭಾರಿ ಮಳೆಯನ್ನು ಅವಲಂಬಿಸಿದೆ.")
-            else:
-                return EvaluatedCropCandidate(
-                    crop=crop,
-                    hard_excluded=True,
-                    exclusion_reason_en=f"Water constraint: {crop.name_en} requires {', '.join(supported_water)}, incompatible with {water_avail}.",
-                    exclusion_reason_kn=f"ನೀರಿನ ಕೊರತೆ: {crop.name_kn} ಬೆಳೆಗೆ {', '.join(supported_water)} ಅಗತ್ಯವಿದ್ದು, {water_avail} ಸ್ಥಿತಿಗೆ ಸೂಕ್ತವಲ್ಲ.",
-                    illustrative_score=0.0,
-                    suitability_category="Water Deficit Conflict",
-                    ml_probability=ml_probability,
-                    dimension_scores={},
-                    reasons_en=[],
-                    reasons_kn=[],
-                    limitations_en=[],
-                    limitations_kn=[],
-                    conflict_flags=["water_deficit"],
-                )
-        water_score = 0.40
-        conflict_flags.append("water_caution")
-        limitations_en.append(
-            f"Requires {', '.join(supported_water)}; {water_avail} may cause moisture stress during critical stages."
-        )
-        limitations_kn.append(
-            f"{crop.name_kn} ಬೆಳೆಗೆ {', '.join(supported_water)} ಅಗತ್ಯವಿದೆ; ಪ್ರಸ್ತುತ ನೀರಿನ ಲಭ್ಯತೆಯಲ್ಲಿ ತೇವಾಂಶ ಕೊರತೆಯಾಗಬಹುದು."
-        )
+    # =========================================================================
+    # STAGE 2: Seasonal & Sowing Month Compatibility
+    # =========================================================================
+    if ctx.season in req.suitable_seasons:
+        ev.seasonal_score = 92.0
+        badges["season"] = "aligned"
+        ev.reasons_en.append(f"Well aligned with {ctx.season} sowing cycle ({crop.growing_duration_days_min}-{crop.growing_duration_days_max} days).")
+        ev.reasons_kn.append(f"{ctx.season} ಹಂಗಾಮಿಗೆ ಸೂಕ್ತವಾದ ಬೆಳೆ ಅವಧಿ ({crop.growing_duration_days_min}-{crop.growing_duration_days_max} ದಿನಗಳು).")
     else:
-        water_score = 0.85
-
-    # 4. Soil Type + Soil pH Compatibility
-    soil_type_score = 1.0 if soil_type in req.suitable_soil_types else (0.65 if "Loamy" in req.suitable_soil_types and soil_type in ("Red", "Alluvial") else 0.30)
-    if soil_type in req.suitable_soil_types:
-        reasons_en.append(f"{soil_type} soil matches documented soil texture suitability.")
-        reasons_kn.append(f"{soil_type} ಮಣ್ಣು ಈ ಬೆಳೆಗೆ ಪೂರಕವಾಗಿದೆ.")
-    else:
-        limitations_en.append(
-            f"{soil_type} soil is outside preferred textures ({', '.join(req.suitable_soil_types)}); drainage or tilth management may be needed."
+        ev.hard_rejected = True
+        ev.rejection_reasons_en.append(
+            f"{crop.name_en} is normally suited to {', '.join(req.suitable_seasons)}, not {ctx.season}."
         )
-        limitations_kn.append(
-            f"{soil_type} ಮಣ್ಣು ಆದ್ಯತೆಯ ಮಣ್ಣಿನ ವರ್ಗದಲ್ಲಿಲ್ಲ ({', '.join(req.suitable_soil_types)}); ಮಣ್ಣು ಸುಧಾರಣೆ ಅಗತ್ಯವಾಗಬಹುದು."
+        ev.rejection_reasons_kn.append(
+            f"{crop.name_kn} ಸಾಮಾನ್ಯವಾಗಿ {', '.join(req.suitable_seasons)} ಹಂಗಾಮಿಗೆ ಸೂಕ್ತ; {ctx.season} ಹಂಗಾಮಿಗಲ್ಲ."
         )
+        ev.conflict_flags.append("season_mismatch")
+        badges["season"] = "mismatch"
+        ev.compatibility_badges = badges
+        return ev
 
-    if ph is not None:
-        if req.ph_optimal_min <= ph <= req.ph_optimal_max:
-            ph_score = 1.0
-            reasons_en.append(f"Soil pH {ph:.1f} is in optimal range ({req.ph_optimal_min:.1f}-{req.ph_optimal_max:.1f}).")
-            reasons_kn.append(f"ಮಣ್ಣಿನ ಪಿಎಚ್ {ph:.1f} ಉತ್ತಮ ವ್ಯಾಪ್ತಿಯಲ್ಲಿದೆ ({req.ph_optimal_min:.1f}-{req.ph_optimal_max:.1f}).")
-        elif req.ph_min <= ph <= req.ph_max:
-            ph_score = 0.72
-            reasons_en.append(f"Soil pH {ph:.1f} is within tolerable bounds ({req.ph_min:.1f}-{req.ph_max:.1f}).")
-            reasons_kn.append(f"ಮಣ್ಣಿನ ಪಿಎಚ್ {ph:.1f} ಸಹನೀಯ ವ್ಯಾಪ್ತಿಯಲ್ಲಿದೆ.")
+    if ctx.intended_sowing_month:
+        if ctx.intended_sowing_month in req.sowing_months:
+            ev.seasonal_score = min(100.0, ev.seasonal_score + 8.0)
+            ev.reasons_en.append(f"Intended sowing month ({ctx.intended_sowing_month}) matches recommended sowing window.")
+            ev.reasons_kn.append(f"ಉದ್ದೇಶಿತ ಬಿತ್ತನೆ ತಿಂಗಳು ({ctx.intended_sowing_month}) ಸೂಕ್ತ ಸಮಯಕ್ಕೆ ಹೊಂದಿಕೊಳ್ಳುತ್ತದೆ.")
         else:
-            ph_score = 0.15
-            conflict_flags.append("ph_out_of_range")
-            limitations_en.append(
-                f"Soil pH {ph:.1f} falls outside tolerated range ({req.ph_min:.1f}-{req.ph_max:.1f}); soil amendment verification required."
+            ev.seasonal_score = max(55.0, ev.seasonal_score - 22.0)
+            ev.limitations_en.append(
+                f"Planned month ({ctx.intended_sowing_month}) differs from typical Karnataka sowing window ({', '.join(req.sowing_months)})."
             )
-            limitations_kn.append(
-                f"ಮಣ್ಣಿನ ಪಿಎಚ್ {ph:.1f} ಸೂಕ್ತ ವ್ಯಾಪ್ತಿಯಿಂದ ({req.ph_min:.1f}-{req.ph_max:.1f}) ಹೊರಗಿದೆ; ಮಣ್ಣು ಸುಧಾರಣೆ ಅಗತ್ಯ."
+            ev.limitations_kn.append(
+                f"ಬಿತ್ತನೆ ತಿಂಗಳು ({ctx.intended_sowing_month}) ಸಾಮಾನ್ಯ ಶಿಫಾರಸು ತಿಂಗಳುಗಳಿಂದ ({', '.join(req.sowing_months)}) ಭಿನ್ನವಾಗಿದೆ."
             )
     else:
-        ph_score = 0.50
-        limitations_en.append("Soil pH was not provided; pH compatibility could not be verified.")
-        limitations_kn.append("ಮಣ್ಣಿನ ಪಿಎಚ್ ಮೌಲ್ಯ ನೀಡದ ಕಾರಣ ಆಮ್ಲೀಯತೆ ಹೊಂದಾಣಿಕೆ ಪರಿಶೀಲಿಸಲಾಗಿಲ್ಲ.")
+        ev.missing_info_en.append("Intended sowing month was not specified; verify exact planting window locally.")
+        ev.missing_info_kn.append("ಬಿತ್ತನೆ ತಿಂಗಳು ನೀಡಿಲ್ಲ; ಸ್ಥಳೀಯ ಮಳೆ ಆಧರಿಸಿ ಬಿತ್ತನೆ ದಿನಾಂಕ ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ.")
 
-    soil_score = round((soil_type_score * 0.55) + (ph_score * 0.45), 4)
+    # =========================================================================
+    # STAGE 3: Observed Soil Texture, Drainage, Depth, Stones & Topography
+    # =========================================================================
+    soil_points = 0.0
+    soil_weights = 0.0
 
-    # 5. Nutrient (NPK) Compatibility
-    n_score = range_proximity_score(n_val, req.nitrogen_min, req.nitrogen_max, tolerance=45.0)
-    p_score = range_proximity_score(p_val, req.phosphorus_min, req.phosphorus_max, tolerance=35.0)
-    k_score = range_proximity_score(k_val, req.potassium_min, req.potassium_max, tolerance=35.0)
-    nutrient_score = round((n_score + p_score + k_score) / 3.0, 4)
-
-    if n_val is not None and p_val is not None and k_val is not None:
-        if nutrient_score >= 0.75:
-            reasons_en.append(f"Available NPK ({n_val:.0f}/{p_val:.0f}/{k_val:.0f} kg/ha) aligns well with crop demand.")
-            reasons_kn.append(f"ಲಭ್ಯವಿರುವ ಎನ್.ಪಿ.ಕೆ ({n_val:.0f}/{p_val:.0f}/{k_val:.0f} ಕೆಜಿ/ಹೆ) ಬೆಳೆಯ ಬೇಡಿಕೆಗೆ ಹೊಂದಿಕೆಯಾಗುತ್ತದೆ.")
-        elif nutrient_score < 0.50:
-            limitations_en.append("Entered NPK values deviate notably from standard crop nutrient bands; plan balanced fertilization via Soil Health Card.")
-            limitations_kn.append("ನೀಡಿದ ಎನ್.ಪಿ.ಕೆ ಮೌಲ್ಯಗಳು ಬೆಳೆಯ ಪ್ರಮಾಣಿತ ಪೋಷಕಾಂಶ ವ್ಯಾಪ್ತಿಗಿಂತ ಭಿನ್ನವಾಗಿವೆ.")
+    # 3A. Texture
+    soil_weights += 35.0
+    if ctx.soil_texture == "not_sure":
+        soil_points += 20.0
+        ev.missing_info_en.append("Soil feel/texture was marked 'Not sure' — perform a simple moist hand-feel check before seed purchase.")
+        ev.missing_info_kn.append("ಮಣ್ಣಿನ ವಿನ್ಯಾಸ ತಿಳಿದಿಲ್ಲ ಎಂದು ಗುರುತಿಸಲಾಗಿದೆ — ಬಿತ್ತನೆಗೆ ಮುನ್ನ ತೇವ ಮಣ್ಣನ್ನು ಕೈಯಿಂದ ಪರೀಕ್ಷಿಸಿ.")
+    elif ctx.soil_texture == "mixed":
+        soil_points += 26.0
+    elif ctx.soil_texture in req.suitable_textures:
+        soil_points += 35.0
+        ev.reasons_en.append(f"Observed {ctx.soil_texture} soil texture matches this crop's root-zone needs.")
+        ev.reasons_kn.append(f"ನಿಮ್ಮ {ctx.soil_texture} ಮಣ್ಣಿನ ವಿನ್ಯಾಸವು ಈ ಬೆಳೆಯ ಬೇರಿನ ಅಗತ್ಯಕ್ಕೆ ಹೊಂದುತ್ತದೆ.")
     else:
-        limitations_en.append("Full soil NPK test values were not supplied; nutrient suitability is provisional.")
-        limitations_kn.append("ಸಂಪೂರ್ಣ ಎನ್.ಪಿ.ಕೆ ಮಣ್ಣು ಪರೀಕ್ಷೆ ಮೌಲ್ಯಗಳಿಲ್ಲದ ಕಾರಣ ಪೋಷಕಾಂಶ ಹೊಂದಾಣಿಕೆ ತಾತ್ಕಾಲಿಕವಾಗಿದೆ.")
-
-    # 6. Climatic Compatibility (Temperature, Humidity, Rainfall)
-    t_score = range_proximity_score(temp, req.temp_min_c, req.temp_max_c, tolerance=7.0)
-    h_score = range_proximity_score(humidity, req.humidity_min_pct, req.humidity_max_pct, tolerance=20.0)
-    r_score = range_proximity_score(eff_rainfall, req.rainfall_min_mm, req.rainfall_max_mm, tolerance=400.0)
-    climatic_score = round((t_score * 0.40) + (h_score * 0.25) + (r_score * 0.35), 4)
-
-    if temp is not None and (temp < req.temp_min_c - 6 or temp > req.temp_max_c + 6):
-        conflict_flags.append("temperature_extreme")
-        limitations_en.append(
-            f"Temperature {temp:.1f}°C is outside documented crop range ({req.temp_min_c:.0f}-{req.temp_max_c:.0f}°C)."
+        soil_points += 10.0
+        ev.limitations_en.append(
+            f"Prefers {', '.join(req.suitable_textures)} texture rather than {ctx.soil_texture} soil."
         )
-        limitations_kn.append(
-            f"ತಾಪಮಾನ {temp:.1f}°C ಈ ಬೆಳೆಯ ಸೂಕ್ತ ವ್ಯಾಪ್ತಿಯಿಂದ ({req.temp_min_c:.0f}-{req.temp_max_c:.0f}°C) ಹೊರಗಿದೆ."
-        )
-    elif temp is not None and t_score >= 0.8:
-        reasons_en.append(f"Ambient temperature ({temp:.1f}°C) suits documented crop thermal range.")
-        reasons_kn.append(f"ತಾಪಮಾನ ({temp:.1f}°C) ಈ ಬೆಳೆಯ ಬೆಳವಣಿಗೆಗೆ ಅನುಕೂಲಕರವಾಗಿದೆ.")
-
-    if rainfall is None and location and location.normal_annual_rainfall_mm is not None:
-        limitations_en.append(
-            f"Seasonal rainfall not entered; evaluated using taluk reference annual normal ({location.normal_annual_rainfall_mm:.0f} mm/yr)."
-        )
-        limitations_kn.append(
-            f"ಮಳೆ ಪ್ರಮಾಣ ನೀಡದ ಕಾರಣ ತಾಲ್ಲೂಕಿನ ವಾರ್ಷಿಕ ಸರಾಸರಿ ಮಳೆ ({location.normal_annual_rainfall_mm:.0f} ಮಿ.ಮೀ) ಉಲ್ಲೇಖಿಸಲಾಗಿದೆ."
+        ev.limitations_kn.append(
+            f"ಈ ಬೆಳೆಗೆ {', '.join(req.suitable_textures)} ಮಣ್ಣು ಹೆಚ್ಚು ಸೂಕ್ತ; ನಿಮ್ಮಲ್ಲಿ {ctx.soil_texture} ಮಣ್ಣಿದೆ."
         )
 
-    # Composite Rule Score (0-100)
-    rule_composite = (
-        location_score * weights.location
-        + soil_score * weights.soil
-        + water_score * weights.water
-        + seasonal_score * weights.seasonal
-        + climatic_score * weights.climatic
-        + nutrient_score * weights.nutrient
+    # 3B. Drainage & Waterlogging Safety
+    soil_weights += 30.0
+    eff_drainage = _effective_drainage(ctx)
+    if eff_drainage == "waterlogging_prone":
+        if req.waterlogging_tolerance == "high":
+            soil_points += 28.0
+            ev.reasons_en.append("Field retains rainwater / experiences waterlogging, which this crop tolerates better than upland crops.")
+            ev.reasons_kn.append("ಜಮೀನಿನಲ್ಲಿ ಮಳೆ ನೀರು ನಿಲ್ಲುವ ಸ್ಥಿತಿಗೆ ಇತರ ಬೆಳೆಗಳಿಗಿಂತ ಇದು ಉತ್ತಮ ಸಹಿಷ್ಣುತೆ ಹೊಂದಿದೆ.")
+        elif req.waterlogging_tolerance == "moderate":
+            soil_points += 14.0
+            ev.conflict_flags.append("drainage_caution")
+            ev.limitations_en.append("Slow drainage / waterlogging reported: raised beds or drainage channels are necessary.")
+            ev.limitations_kn.append("ನೀರು ನಿಲ್ಲುವ ಸಮಸ್ಯೆ ವರದಿಯಾಗಿದೆ: ಬಸಿಕಾಲುವೆ ಅಥವಾ ಏರು ಮಡಿ ವ್ಯವಸ್ಥೆ ಅಗತ್ಯ.")
+        else:
+            soil_points += 2.0
+            ev.conflict_flags.append("waterlogging_risk")
+            ev.limitations_en.append("HIGH DRAINAGE WARNING: Water stands for >=1 day / waterlogs frequently, risking severe root rot in this crop.")
+            ev.limitations_kn.append("ನೀರು ನಿಲ್ಲುವ ಎಚ್ಚರಿಕೆ: 1 ದಿನಕ್ಕೂ ಹೆಚ್ಚು ನೀರು ನಿಲ್ಲುವ ಜಮೀನಿನಲ್ಲಿ ಈ ಬೆಳೆಗೆ ಬೇರು ಕೊಳೆ ರೋಗದ ಅಪಾಯ ಹೆಚ್ಚು.")
+    elif eff_drainage == "slow_draining":
+        if req.waterlogging_tolerance == "low":
+            soil_points += 15.0
+            ev.conflict_flags.append("slow_drainage_caution")
+            ev.limitations_en.append("Water stays for several hours after heavy rain; keep field outlets clear to protect roots.")
+            ev.limitations_kn.append("ಭಾರಿ ಮಳೆಯ ನಂತರ ನೀರು ಕೆಲ ಗಂಟೆ ನಿಲ್ಲುವುದರಿಂದ ಬಸಿಕಾಲುವೆ ಸ್ವಚ್ಛವಾಗಿರಿಸಿ.")
+        else:
+            soil_points += 27.0
+    elif eff_drainage == "rapid_draining":
+        if crop.water_requirement_level == "High":
+            soil_points += 6.0
+            ev.conflict_flags.append("rapid_drainage_for_high_water")
+            ev.limitations_en.append("Very rapid drainage makes it difficult to sustain high-water crops without frequent irrigation.")
+            ev.limitations_kn.append("ನೀರು ಅತಿ ವೇಗವಾಗಿ ಬಸಿದುಹೋಗುವ ಮಣ್ಣಿನಲ್ಲಿ ಅಧಿಕ ನೀರಿನ ಬೆಳೆಗೆ ತೇವಾಂಶ ಕಾಪಾಡುವುದು ಕಷ್ಟ.")
+        else:
+            soil_points += 28.0
+            ev.reasons_en.append("Well-drained field protects roots and pods from stagnation.")
+            ev.reasons_kn.append("ನೀರು ಬೇಗ ಬಸಿದುಹೋಗುವ ಮಣ್ಣು ಬೇರು ಕೊಳೆ ರೋಗದಿಂದ ರಕ್ಷಿಸುತ್ತದೆ.")
+    elif eff_drainage == "well_drained":
+        soil_points += 30.0
+        ev.reasons_en.append("Moderate rainwater drainage provides balanced root aeration.")
+        ev.reasons_kn.append("ಮಧ್ಯಮ ನೀರು ಬಸಿಯುವಿಕೆ ಬೇರುಗಳಿಗೆ ಉತ್ತಮ ಗಾಳಿ ಮತ್ತು ತೇವಾಂಶ ನೀಡುತ್ತದೆ.")
+    else:
+        soil_points += 17.0
+        ev.missing_info_en.append("Post-rain drainage observation was 'Not sure'; monitor standing water after heavy showers.")
+        ev.missing_info_kn.append("ಮಳೆ ನೀರು ಬಸಿಯುವಿಕೆ ತಿಳಿದಿಲ್ಲ; ಮಳೆಯ ನಂತರ ನೀರು ನಿಲ್ಲುತ್ತದೆಯೇ ಗಮನಿಸಿ.")
+
+    # 3C. Land Topography, Depth & Visible Stones
+    soil_weights += 35.0
+    topo_ok = ctx.land_topography in req.suitable_land_topography
+    if ctx.land_topography == "rocky_stony":
+        if req.min_soil_depth == "deep":
+            soil_points += 6.0
+            ev.conflict_flags.append("rocky_stony_root_limit")
+            ev.limitations_en.append("Rocky/stony land restricts deep rooting required for long-duration crops.")
+            ev.limitations_kn.append("ಕಲ್ಲು ಮಿಶ್ರಿತ ಭೂಮಿ ಆಳವಾದ ಬೇರು ಬಿಡುವ ಬೆಳೆಗಳಿಗೆ ತೊಂದರೆಯಾಗುತ್ತದೆ.")
+        else:
+            soil_points += 20.0
+            ev.limitations_en.append("Rocky/stony plot limits mechanization and lowers moisture buffer.")
+            ev.limitations_kn.append("ಕಲ್ಲು ಮಿಶ್ರಿತ ಭೂಮಿಯಲ್ಲಿ ಉಳುಮೆ ಮತ್ತು ತೇವಾಂಶ ಸಂಗ್ರಹಣೆ ಸೀಮಿತವಾಗಿರುತ್ತದೆ.")
+    elif ctx.land_topography == "steep_hilly":
+        if "steep_hilly" in req.suitable_land_topography:
+            soil_points += 33.0
+            ev.reasons_en.append("Adapted to sloped/hilly Malnad terrain with contour bunding or shade cover.")
+            ev.reasons_kn.append("ಇಳಿಜಾರು/ಬೆಟ್ಟ ಪ್ರದೇಶಕ್ಕೆ ಸೂಕ್ತವಾದ ಬೆಳೆ (ಕಾಂಟೂರ್ ಬದುಗಳೊಂದಿಗೆ).")
+        else:
+            soil_points += 10.0
+            ev.conflict_flags.append("slope_erosion_risk")
+            ev.limitations_en.append("Steep/hilly slope increases runoff erosion risk; avoid clean-tilled row cultivation without terraces.")
+            ev.limitations_kn.append("ತೀವ್ರ ಇಳಿಜಾರು ಪ್ರದೇಶದಲ್ಲಿ ಮಣ್ಣು ಸವಕಳಿ ತಡೆಯಲು ಮೆಟ್ಟಿಲು/ಕಾಂಟೂರ್ ವ್ಯವಸ್ಥೆ ಅಗತ್ಯ.")
+    elif topo_ok:
+        soil_points += 30.0
+    else:
+        soil_points += 16.0
+        ev.limitations_en.append(f"Usually prefers {', '.join(req.suitable_land_topography)} land compared to {ctx.land_topography.replace('_', ' ')}.")
+        ev.limitations_kn.append(f"ಈ ಬೆಳೆಗೆ {ctx.land_topography.replace('_', ' ')} ಭೂಮಿಗಿಂತ ಇತರ ಭೂಸ್ವರೂಪ ಹೆಚ್ಚು ಸೂಕ್ತ.")
+
+    # Depth / stones penalty check
+    if ctx.soil_depth != "unknown":
+        req_depth = DEPTH_RANK.get(req.min_soil_depth, 2)
+        obs_depth = DEPTH_RANK.get(ctx.soil_depth, 2)
+        if obs_depth < req_depth:
+            soil_points = max(0.0, soil_points - 14.0)
+            ev.conflict_flags.append("shallow_soil_constraint")
+            ev.limitations_en.append(
+                f"Observed {ctx.soil_depth} soil depth is below the {req.min_soil_depth} root depth typically preferred."
+            )
+            ev.limitations_kn.append(
+                f"ಗಮನಿಸಿದ {ctx.soil_depth} ಮಣ್ಣಿನ ಆಳವು ಈ ಬೆಳೆಗೆ ಬೇಕಾದ {req.min_soil_depth} ಆಳಕ್ಕಿಂತ ಕಡಿಮೆಯಿದೆ."
+            )
+    else:
+        ev.missing_info_en.append("Approximate soil depth was marked 'Unknown'.")
+        ev.missing_info_kn.append("ಮಣ್ಣಿನ ಆಳವನ್ನು 'ತಿಳಿದಿಲ್ಲ' ಎಂದು ನಮೂದಿಸಲಾಗಿದೆ.")
+
+    if ctx.visible_stones == "many_stony" and req.min_soil_depth == "deep":
+        soil_points = max(0.0, soil_points - 8.0)
+        ev.limitations_en.append("Many visible stones may obstruct deep root establishment or tuber/pod harvesting.")
+        ev.limitations_kn.append("ಜಮೀನಿನಲ್ಲಿ ಹೆಚ್ಚಿನ ಕಲ್ಲುಗಳಿರುವುದು ಬೇರು ಮತ್ತು ಕಾಯಿ ಬೆಳವಣಿಗೆಗೆ ಅಡ್ಡಿಯಾಗಬಹುದು.")
+
+    # Soil color broad note (only cautious check, never asserts NPK/fertility!)
+    if ctx.soil_color == "mixed_uncertain":
+        ev.missing_info_en.append("Soil colour was uncertain; visual cue omitted without guessing fertility.")
+        ev.missing_info_kn.append("ಮಣ್ಣಿನ ಬಣ್ಣ ಅನಿಶ್ಚಿತವಾಗಿರುವುದರಿಂದ ಫಲವತ್ತತೆ ಊಹೆ ಮಾಡಿಲ್ಲ.")
+
+    ev.soil_land_score = round((soil_points / soil_weights) * 100.0, 2)
+    badges["soil_land"] = (
+        "strong" if ev.soil_land_score >= 78 else ("moderate" if ev.soil_land_score >= 52 else "caution")
     )
 
-    # Blend ML probability ONLY for crops present in the ML dataset and when full/climate+soil features exist,
-    # keeping ML bounded so it never overrides hard agronomic constraints.
-    if crop.in_ml_dataset and ml_probability is not None and not reduced_info:
-        blended = (rule_composite * (1.0 - ML_BLEND_FACTOR)) + (ml_probability * ML_BLEND_FACTOR)
-        if ml_probability >= 0.15:
-            reasons_en.append(f"Random Forest pattern alignment: {ml_probability * 100:.1f}% relative class probability.")
-            reasons_kn.append(f"ಎಂಎಲ್ ಮಾದರಿ ಪೂರಕತೆ: {ml_probability * 100:.1f}% ಸಾಪೇಕ್ಷ ಸಂಭವನೀಯತೆ.")
+    # =========================================================================
+    # STAGE 4: Water Availability & Moisture Retention Compatibility
+    # =========================================================================
+    water_tier = _effective_water_tier(ctx)
+    eff_moisture = ctx.soil_observation.get("effective_moisture_retention", "unknown")
+
+    if water_tier in ("rainfed_scarce", "limited"):
+        if crop.water_requirement_level == "High":
+            # Only reject if definitely not coastal/valley heavy rain
+            ev.water_score = 12.0
+            ev.conflict_flags.append("severe_water_shortage")
+            badges["water"] = "mismatch"
+            ev.limitations_en.append(
+                f"HIGH WATER WARNING: {crop.name_en} needs {crop.water_requirement_mm_min}-{crop.water_requirement_mm_max} mm, unsuitable for limited/scarce water."
+            )
+            ev.limitations_kn.append(
+                f"ನೀರಿನ ಕೊರತೆ ಎಚ್ಚರಿಕೆ: {crop.name_kn} ಬೆಳೆಗೆ ಅಧಿಕ ನೀರು ಅಗತ್ಯವಿದ್ದು ಸೀಮಿತ ನೀರಾವರಿಗೆ ಸೂಕ್ತವಲ್ಲ."
+            )
+        elif crop.water_requirement_level == "Moderate":
+            if req.drought_tolerance == "high":
+                ev.water_score = 72.0
+                badges["water"] = "moderate"
+            else:
+                ev.water_score = 42.0
+                badges["water"] = "caution"
+                ev.conflict_flags.append("moisture_stress_risk")
+                ev.limitations_en.append("Limited irrigation availability may stress moderate-water crops during dry spells.")
+                ev.limitations_kn.append("ಸೀಮಿತ ನೀರಾವರಿ ಲಭ್ಯತೆಯು ಒಣ ದಿನಗಳಲ್ಲಿ ಮಧ್ಯಮ ನೀರಿನ ಬೆಳೆಗೆ ಒತ್ತಡ ತರಬಹುದು.")
+        else:
+            ev.water_score = 96.0
+            badges["water"] = "aligned"
+            ev.reasons_en.append(
+                f"Low water demand ({crop.water_requirement_mm_min}-{crop.water_requirement_mm_max} mm) & {req.drought_tolerance} drought tolerance fit scarce/limited water."
+            )
+            ev.reasons_kn.append(
+                f"ಕಡಿಮೆ ನೀರಿನ ಬೇಡಿಕೆ ({crop.water_requirement_mm_min}-{crop.water_requirement_mm_max} ಮಿ.ಮೀ) ಸೀಮಿತ ನೀರಿನ ಪರಿಸ್ಥಿತಿಗೆ ಉತ್ತಮವಾಗಿ ಹೊಂದುತ್ತದೆ."
+            )
+    elif water_tier in ("rainfed_normal", "uncertain"):
+        if crop.water_requirement_level == "High":
+            ev.water_score = 26.0
+            badges["water"] = "caution"
+            ev.conflict_flags.append("insufficient_assured_water")
+            ev.limitations_en.append("Requires assured supplemental irrigation; rainfed/uncertain water increases crop failure risk.")
+            ev.limitations_kn.append("ಮಳೆಯಾಶ್ರಿತ ಅಥವಾ ಅನಿಶ್ಚಿತ ನೀರಾವರಿಯಲ್ಲಿ ಈ ಅಧಿಕ ನೀರಿನ ಬೆಳೆಗೆ ಅಪಾಯ ಹೆಚ್ಚು.")
+        elif crop.water_requirement_level == "Moderate":
+            ev.water_score = 74.0
+            badges["water"] = "moderate"
+            if eff_moisture in ("low_retention", "likely_low_retention"):
+                ev.water_score = 54.0
+                ev.limitations_en.append("Fast-drying soil + rainfed status requires mulching or protective irrigation during flowering.")
+                ev.limitations_kn.append("ಬೇಗ ಒಣಗುವ ಮಣ್ಣಿನಲ್ಲಿ ಹೂಬಿಡುವ ಹಂತದಲ್ಲಿ ತೇವಾಂಶ ರಕ್ಷಣೆ ಅಗತ್ಯ.")
+        else:
+            ev.water_score = 95.0
+            badges["water"] = "aligned"
+            ev.reasons_en.append("Low-water crop well matched for rainfed moisture conservation.")
+            ev.reasons_kn.append("ಮಳೆಯಾಶ್ರಿತ ತೇವಾಂಶದಲ್ಲಿ ಸುರಕ್ಷಿತವಾಗಿ ಬೆಳೆಯುವ ಕಡಿಮೆ ನೀರಿನ ಬೆಳೆ.")
+    elif water_tier in ("moderate", "rainfed_humid"):
+        if crop.water_requirement_level == "High" and water_tier == "moderate":
+            ev.water_score = 58.0
+            badges["water"] = "caution"
+            ev.limitations_en.append("Requires seasonal irrigation support; partial/certain-month water may not cover maturity.")
+            ev.limitations_kn.append("ಕೆಲವು ತಿಂಗಳು ಮಾತ್ರ ನೀರು ಲಭ್ಯವಿದ್ದಲ್ಲಿ ಸಂಪೂರ್ಣ ಬೆಳೆ ಅವಧಿಗೆ ನೀರು ಸಾಲದಿರಬಹುದು.")
+        else:
+            ev.water_score = 92.0
+            badges["water"] = "aligned"
+            ev.reasons_en.append("Available water regime supports healthy growth across key stages.")
+            ev.reasons_kn.append("ಲಭ್ಯವಿರುವ ನೀರಾವರಿ ಮತ್ತು ಮಳೆ ಪ್ರಮಾಣ ಬೆಳೆಯ ಹಂತಗಳಿಗೆ ಪೂರಕವಾಗಿದೆ.")
+    else:  # assured
+        ev.water_score = 96.0 if crop.water_requirement_level in ("Moderate", "High") else 86.0
+        badges["water"] = "aligned"
+        ev.reasons_en.append("Year-round/assured irrigation availability removes moisture bottleneck.")
+        ev.reasons_kn.append("ಋತುವಿನ ಪೂರ್ತಿ ನೀರಾವರಿ ಲಭ್ಯತೆ ಇರುವುದರಿಂದ ತೇವಾಂಶದ ಕೊರತೆ ಇರುವುದಿಲ್ಲ.")
+
+    if ctx.water_reliability == "uncertain":
+        ev.missing_info_en.append("Irrigation reliability marked 'Uncertain' — verify borewell/canal release schedule before planting.")
+        ev.missing_info_kn.append("ನೀರಾವರಿ ಸ್ಥಿರತೆ 'ಖಚಿತವಿಲ್ಲ' ಎಂದು ನಮೂದಿಸಲಾಗಿದೆ — ಬಿತ್ತನೆಗೆ ಮುನ್ನ ನೀರಿನ ಲಭ್ಯತೆ ಖಚಿತಪಡಿಸಿ.")
+
+    # =========================================================================
+    # STAGE 5: Climate & Weather Risk Suitability
+    # =========================================================================
+    long_climate = ctx.weather_intel["long_term_climate"]
+    advisory = ctx.weather_intel["farming_advisory"]
+    zone_temp = float(long_climate["season_normal_temp_c"])
+    zone_annual_rain = float(long_climate.get("normal_annual_rainfall_mm") or 700.0)
+
+    climate_pts = 80.0
+    if req.temp_min_c <= zone_temp <= req.temp_max_c:
+        climate_pts += 12.0
     else:
-        blended = rule_composite
-        if not crop.in_ml_dataset:
-            limitations_en.append(
-                "Evaluated by Karnataka agronomic rules (this regional staple is outside the 22-crop public ML CSV)."
+        climate_pts -= 28.0
+        ev.limitations_en.append(
+            f"Normal {ctx.season} temperature ({zone_temp:.1f} C) sits outside optimal {req.temp_min_c:.0f}-{req.temp_max_c:.0f} C range."
+        )
+        ev.limitations_kn.append(
+            f"ವಲಯದ ಸಾಮಾನ್ಯ ತಾಪಮಾನ ({zone_temp:.1f}°C) ಸೂಕ್ತ ವ್ಯಾಪ್ತಿಗಿಂತ ({req.temp_min_c:.0f}-{req.temp_max_c:.0f}°C) ಭಿನ್ನವಾಗಿದೆ."
+        )
+
+    if zone_annual_rain < req.rainfall_min_mm and ctx.water_source == "rainfed":
+        climate_pts -= 20.0
+        ev.limitations_en.append(
+            f"Zone normal rainfall ({zone_annual_rain:.0f} mm/yr) is tight for rainfed cultivation without supplemental water."
+        )
+        ev.limitations_kn.append(
+            f"ವಲಯದ ವಾರ್ಷಿಕ ಮಳೆ ({zone_annual_rain:.0f} ಮಿ.ಮೀ) ಪೂರಕ ನೀರಾವರಿ ಇಲ್ಲದೆ ಸಾಲದಿರಬಹುದು."
+        )
+    elif zone_annual_rain > req.rainfall_max_mm * 1.15:
+        climate_pts -= 18.0
+        ev.limitations_en.append(
+            f"High rainfall zone ({zone_annual_rain:.0f} mm/yr) elevates fungal/pod-rot risk for this crop."
+        )
+        ev.limitations_kn.append(
+            f"ಅಧಿಕ ಮಳೆ ವಲಯದಲ್ಲಿ ({zone_annual_rain:.0f} ಮಿ.ಮೀ) ಬೂಷ್ಟು ಮತ್ತು ಕಾಯಿ ಕೊಳೆ ರೋಗದ ಅಪಾಯ ಹೆಚ್ಚು."
+        )
+
+    # Crop-stage specific weather risk note
+    threshold_info = req.weather_risk_thresholds or {}
+    if advisory.get("dry_spell_risk_level") == "high" and req.drought_tolerance == "low":
+        climate_pts -= 16.0
+        ev.limitations_en.append("Dry-spell risk flagged for this season + low drought tolerance requires protective irrigation readiness.")
+        ev.limitations_kn.append("ಒಣ ಹವಾಮಾನದ ಅಪಾಯ ಹೆಚ್ಚಿದ್ದು ಈ ಬೆಳೆಗೆ ಸಂರಕ್ಷಣಾ ನೀರಾವರಿ ಸಿದ್ಧತೆ ಅಗತ್ಯ.")
+    if threshold_info.get("risk_note_en"):
+        ev.limitations_en.append(f"Weather stage check: {threshold_info['risk_note_en']}")
+        ev.limitations_kn.append(f"ಹವಾಮಾನ ಹಂತದ ಎಚ್ಚರಿಕೆ: {threshold_info.get('risk_note_kn', threshold_info['risk_note_en'])}")
+
+    if not advisory.get("live_weather_available"):
+        ev.missing_info_en.append("Live current weather / 7-day forecast was unavailable; climate check relies on long-term zone normals.")
+        ev.missing_info_kn.append("ಪ್ರಸ್ತುತ ನೇರ ಹವಾಮಾನ ಮುನ್ಸೂಚನೆ ಲಭ್ಯವಿಲ್ಲದ ಕಾರಣ ದೀರ್ಘಕಾಲೀನ ಸರಾಸರಿ ಬಳಸಲಾಗಿದೆ.")
+
+    ev.climate_score = round(max(10.0, min(100.0, climate_pts)), 2)
+
+    # =========================================================================
+    # STAGE 6 & 7: Farming Priority, Duration Preference & Rotation History
+    # =========================================================================
+    priority_pts = 72.0
+
+    # Duration match
+    if ctx.duration_preference == "short":
+        if crop.duration_category == "short":
+            priority_pts += 22.0
+            badges["duration"] = "short_match"
+            ev.reasons_en.append(f"Short growing duration ({crop.growing_duration_days_min}-{crop.growing_duration_days_max} days) satisfies your fast-harvest preference.")
+            ev.reasons_kn.append(f"ಕಡಿಮೆ ಬೆಳೆ ಅವಧಿ ({crop.growing_duration_days_min}-{crop.growing_duration_days_max} ದಿನಗಳು) ನಿಮ್ಮ ಆದ್ಯತೆಗೆ ಹೊಂದುತ್ತದೆ.")
+        elif crop.duration_category == "long":
+            priority_pts -= 26.0
+            badges["duration"] = "longer_than_requested"
+            ev.limitations_en.append(f"Requires {crop.growing_duration_days_min}+ days, longer than your short-duration preference.")
+            ev.limitations_kn.append(f"ಇದು {crop.growing_duration_days_min}+ ದಿನಗಳ ದೀರ್ಘಾವಧಿ ಬೆಳೆಯಾಗಿದೆ.")
+        else:
+            priority_pts -= 6.0
+            badges["duration"] = "medium"
+    elif ctx.duration_preference == "long":
+        if crop.duration_category == "long":
+            priority_pts += 16.0
+            badges["duration"] = "long_match"
+        else:
+            badges["duration"] = crop.duration_category
+    else:
+        badges["duration"] = crop.duration_category
+
+    # Farming priority alignment
+    if ctx.farming_priority == "low_water":
+        if crop.water_requirement_level == "Low":
+            priority_pts += 20.0
+            ev.reasons_en.append("Selected specifically to match your low-water cultivation priority.")
+            ev.reasons_kn.append("ಕಡಿಮೆ ನೀರಿನ ಬೆಳೆ ಆದ್ಯತೆಗೆ ಸಂಪೂರ್ಣವಾಗಿ ಹೊಂದುತ್ತದೆ.")
+        elif crop.water_requirement_level == "High":
+            priority_pts -= 28.0
+    elif ctx.farming_priority == "short_duration":
+        if crop.duration_category == "short":
+            priority_pts += 22.0
+        elif crop.duration_category == "medium" and crop.growing_duration_days_max <= 115:
+            priority_pts += 10.0
+        elif crop.duration_category == "long":
+            priority_pts -= 25.0
+    elif ctx.farming_priority == "household_food":
+        if crop.household_food_crop:
+            priority_pts += 16.0
+            ev.reasons_en.append("Provides household staple food / pulse / oilseed value.")
+            ev.reasons_kn.append("ಕುಟುಂಬದ ಆಹಾರ ಬಳಕೆಗೆ ಉಪಯುಕ್ತವಾದ ಬೆಳೆ.")
+        else:
+            priority_pts -= 14.0
+    elif ctx.farming_priority == "commercial":
+        if crop.commercial_crop:
+            priority_pts += 16.0
+        else:
+            priority_pts -= 8.0
+
+    # History adjustments (optional inputs)
+    if ctx.previous_crop:
+        prev = ctx.previous_crop.strip().lower()
+        same_crop = prev in crop.crop_key or prev in crop.name_en.lower()
+        prev_cereal = any(w in prev for w in ("rice", "paddy", "maize", "jowar", "ragi", "sugarcane"))
+        if same_crop:
+            priority_pts -= 18.0
+            ev.conflict_flags.append("monocropping_caution")
+            ev.limitations_en.append(
+                f"Growing {crop.name_en} immediately after '{ctx.previous_crop}' risks repeating soil-borne pests/nutrients depletion; consider crop rotation."
             )
-            limitations_kn.append(
-                "ಕರ್ನಾಟಕ ಕೃಷಿ ನಿಯಮಗಳ ಆಧಾರದ ಮೇಲೆ ಮೌಲ್ಯಮಾಪನ ಮಾಡಲಾಗಿದೆ (22 ಬೆಳೆಗಳ ಎಂಎಲ್ ದತ್ತಾಂಶದ ಹೊರಗಿನ ಸ್ಥಳೀಯ ಬೆಳೆ)."
+            ev.limitations_kn.append(
+                f"ಹಿಂದಿನ ಬೆಳೆ '{ctx.previous_crop}' ನಂತರ ಅದೇ ಬೆಳೆ ಹಾಕುವುದರಿಂದ ಕೀಟ ಮತ್ತು ಪೋಷಕಾಂಶ ಕೊರತೆ ಹೆಚ್ಚಬಹುದು; ಬೆಳೆ ಪರಿವರ್ತನೆ ಒಳ್ಳೆಯದು."
+            )
+        elif prev_cereal and crop.category in ("Pulse", "Oilseed"):
+            priority_pts += 12.0
+            ev.reasons_en.append(
+                f"Good crop rotation break after '{ctx.previous_crop}' — helps rebuild root health and soil nitrogen cycle."
+            )
+            ev.reasons_kn.append(
+                f"ಹಿಂದಿನ '{ctx.previous_crop}' ಬೆಳೆಯ ನಂತರ ದ್ವಿದಳ/ಎಣ್ಣೆಕಾಳು ಬೆಳೆ ಪರಿವರ್ತನೆಗೆ ಅತ್ಯುತ್ತಮವಾಗಿದೆ."
             )
 
-    if conflict_flags:
-        blended = min(blended, 0.64)
+    if ctx.drought_history == "yes":
+        if req.drought_tolerance == "high":
+            priority_pts += 10.0
+            ev.reasons_en.append("Selected with strong drought recovery considering prior drought history on the field.")
+            ev.reasons_kn.append("ಹಿಂದೆ ಬರ ಅನುಭವಿಸಿದ್ದ ಜಮೀನಿಗೆ ಬರ ಸಹಿಷ್ಣು ಗುಣ ಅನುಕೂಲಕರವಾಗಿದೆ.")
+        elif req.drought_tolerance == "low":
+            priority_pts -= 18.0
+            ev.limitations_en.append("Field has prior drought history; this crop is sensitive to dry spells.")
+            ev.limitations_kn.append("ಜಮೀನಿನಲ್ಲಿ ಹಿಂದೆ ಬರ ಅನುಭವವಿರುವುದರಿಂದ ಈ ಬೆಳೆಗೆ ಎಚ್ಚರಿಕೆ ಅಗತ್ಯ.")
 
-    illustrative_score = round(max(0.0, min(100.0, blended * 100.0)), 1)
+    if ctx.flood_history == "yes":
+        if req.waterlogging_tolerance == "low":
+            priority_pts -= 16.0
+            ev.conflict_flags.append("prior_flood_caution")
+            ev.limitations_en.append("Field has flooding history; avoid sowing without effective perimeter drainage.")
+            ev.limitations_kn.append("ಹಿಂದೆ ಪ್ರವಾಹ/ನೀರು ನಿಲ್ಲುವ ಅನುಭವ ಇರುವುದರಿಂದ ಬಸಿಕಾಲುವೆ ವ್ಯವಸ್ಥೆ ಇಲ್ಲದೆ ಬಿತ್ತನೆ ಬೇಡ.")
 
-    if not limitations_en:
-        limitations_en.append("Verify local pest incidence, seed variety availability, and market demand before sowing.")
-        limitations_kn.append("ಬಿತ್ತನೆಗೆ ಮುನ್ನ ಸ್ಥಳೀಯ ಕೀಟ ಬಾಧೆ, ಬೀಜ ಲಭ್ಯತೆ ಮತ್ತು ಮಾರುಕಟ್ಟೆ ಬೇಡಿಕೆ ಪರಿಶೀಲಿಸಿ.")
+    if ctx.pest_disease_history:
+        ev.limitations_en.append(
+            f"Prior recurring issue noted ('{ctx.pest_disease_history}'): follow UAS/RSK seed treatment and IPM before sowing."
+        )
+        ev.limitations_kn.append(
+            f"ಹಿಂದಿನ ಕೀಟ/ರೋಗ ಸಮಸ್ಯೆ ('{ctx.pest_disease_history}') ಹಿನ್ನೆಲೆಯಲ್ಲಿ ಬಿತ್ತನೆಗೆ ಮುನ್ನ ಬೀಜೋಪಚಾರ ಮಾಡಿ."
+        )
 
-    suitability_category = classify_suitability(illustrative_score, conflict_flags, reduced_info)
-
-    return EvaluatedCropCandidate(
-        crop=crop,
-        hard_excluded=False,
-        exclusion_reason_en=None,
-        exclusion_reason_kn=None,
-        illustrative_score=illustrative_score,
-        suitability_category=suitability_category,
-        ml_probability=round(ml_probability, 4) if ml_probability is not None else None,
-        dimension_scores={
-            "location": round(location_score * 100.0, 1),
-            "soil": round(soil_score * 100.0, 1),
-            "water": round(water_score * 100.0, 1),
-            "seasonal": round(seasonal_score * 100.0, 1),
-            "climatic": round(climatic_score * 100.0, 1),
-            "nutrient": round(nutrient_score * 100.0, 1),
-        },
-        reasons_en=reasons_en,
-        reasons_kn=reasons_kn,
-        limitations_en=limitations_en,
-        limitations_kn=limitations_kn,
-        conflict_flags=conflict_flags,
-    )
+    ev.priority_score = round(max(10.0, min(100.0, priority_pts)), 2)
+    ev.compatibility_badges = badges
+    return ev

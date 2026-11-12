@@ -10,7 +10,9 @@ import type {
   RecommendationPayload,
   RecommendationResponse,
   SoilAnalysisResponse,
+  SoilObservationResult,
   TalukItem,
+  WeatherIntelligence,
 } from "../types";
 
 export class ApiError extends Error {
@@ -101,6 +103,34 @@ export const apiClient = {
       method: "POST",
       body: JSON.stringify({ crop_ids: cropIds, land_area_acres: landAreaAcres }),
     }),
+
+  observeSoil: (payload: Record<string, unknown>) =>
+    requestJson<SoilObservationResult>("/api/soil/observe", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  getWeatherAdvisory: (params: {
+    state?: string;
+    district: string;
+    taluk: string;
+    season?: string;
+    water_source?: string;
+    water_reliability?: string;
+    soil_texture?: string;
+    drainage_after_rain?: string;
+  }) => {
+    const search = new URLSearchParams();
+    if (params.state) search.set("state", params.state);
+    search.set("district", params.district);
+    search.set("taluk", params.taluk);
+    if (params.season) search.set("season", params.season);
+    if (params.water_source) search.set("water_source", params.water_source);
+    if (params.water_reliability) search.set("water_reliability", params.water_reliability);
+    if (params.soil_texture) search.set("soil_texture", params.soil_texture);
+    if (params.drainage_after_rain) search.set("drainage_after_rain", params.drainage_after_rain);
+    return requestJson<WeatherIntelligence>(`/api/weather/advisory?${search.toString()}`);
+  },
 
   analyzeSoil: (payload: {
     soil_type: string;

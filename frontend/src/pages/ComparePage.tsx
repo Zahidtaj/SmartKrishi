@@ -154,7 +154,7 @@ export function ComparePage() {
                 className={`inline-flex items-center gap-1.5 min-h-[38px] rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
                   active
                     ? "border-accent bg-accent/15 text-accent"
-                    : "border-white/15 bg-canvas/70 text-secondary hover:text-ink hover:border-white/30"
+                    : "border-ink/15 bg-canvas/70 text-secondary hover:text-ink hover:border-ink/30"
                 }`}
               >
                 {active && <Check className="h-3.5 w-3.5" aria-hidden="true" />}
@@ -173,13 +173,13 @@ export function ComparePage() {
           <section className="sk-surface-card rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[680px] text-left text-sm">
-                <thead className="border-b border-white/10 bg-canvas/70">
+                <thead className="border-b border-ink/10 bg-canvas/70">
                   <tr>
                     <th className="p-4 font-semibold text-secondary w-52">Parameter</th>
                     {comparison.crops.map((c) => (
                       <th key={c.crop_id} className="p-4 font-semibold text-ink">
                         <div className="flex items-center gap-2.5">
-                          <img src={c.image_asset} alt={c.name_en} className="h-9 w-9 rounded border border-white/10" />
+                          <img src={c.image_asset} alt={c.name_en} className="h-9 w-9 rounded border border-ink/10" />
                           <div>
                             <div>{lang === "kn" ? c.name_kn : c.name_en}</div>
                             <div className="text-xs font-normal text-muted">{c.category}</div>
@@ -319,7 +319,7 @@ export function ComparePage() {
             <h2 className="text-base font-semibold text-ink">{t.compare.assumptionsTitle}</h2>
             <div className="space-y-3">
               {comparison.crops.map((c) => (
-                <div key={c.crop_id} className="rounded-lg border border-white/10 bg-canvas/60 p-4 text-sm space-y-1">
+                <div key={c.crop_id} className="rounded-lg border border-ink/10 bg-canvas/60 p-4 text-sm space-y-1">
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-semibold text-ink">{lang === "kn" ? c.name_kn : c.name_en}</span>
                     <span className="font-mono text-xs text-warning">{c.economic_data_status}</span>

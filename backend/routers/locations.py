@@ -80,8 +80,16 @@ def list_taluks(
                 agro_climatic_zone=r.agro_climatic_zone,
                 zone_code=r.zone_code,
                 normal_annual_rainfall_mm=r.normal_annual_rainfall_mm,
+                typical_rainfall_pattern=r.typical_rainfall_pattern,
                 dominant_soil_types=r.dominant_soil_types or [],
+                common_soil_textures=r.common_soil_textures or [],
+                major_crops=r.major_crops or [],
+                recommended_seasons_summary=r.recommended_seasons_summary or {},
+                growing_period_info=r.growing_period_info,
+                regional_references=r.regional_references or [],
                 data_source=r.data_source,
+                verification_status=r.verification_status,
+                last_updated=r.last_updated,
             )
             for r in rows
         ],

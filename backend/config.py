@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     token_secret: str = Field(default="smartkrishi-local-dev-hmac-secret-change-in-prod")
     token_ttl_seconds: int = Field(default=60 * 60 * 8)
     model_dir: str = Field(default=str(PROJECT_ROOT / "ml" / "artifacts"))
+    enable_live_weather: bool = Field(default=False)
+    weather_timeout_seconds: float = Field(default=2.5)
 
     @property
     def cors_origin_list(self) -> list[str]:

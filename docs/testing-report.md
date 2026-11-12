@@ -1,45 +1,37 @@
 # Testing Report — SmartKrishi
 
-This report summarizes all automated and live end-to-end checks executed on the SmartKrishi prototype.
+This report summarizes the automated checks executed on the observation-based SmartKrishi platform.
 
-## 1. Machine Learning Pipeline Validation & Evaluation (`python -m ml.train`)
+## 1. Backend & API Automated Test Suite (`.\.venv\Scripts\python.exe -m pytest -v`)
 
-- **Dataset:** `datasets/raw/crop_recommendation.csv` (2,200 rows, 22 balanced crop classes, 7 features).
-- **Data Validation (`ml/data_validator.py`):** 0 missing/NULL cells, 0 out-of-range values, 0 exact duplicates (`2,200` valid rows).
-- **Split Discipline (`ml/preprocessor.py`):** Stratified 80/20 split (`1,760` train / `440` held-out test, `random_state=42`) performed prior to `StandardScaler` and `LabelEncoder` fitting.
-- **Measured Metrics (`ml/artifacts/model_metrics.json`):**
-  - Held-out Test Accuracy: `0.9955` (`99.55%`)
-  - Macro Precision: `0.9957`
-  - Macro Recall: `0.9955`
-  - Macro F1 Score: `0.9955`
-  - 5-Fold Stratified CV Macro F1: `0.9920 +/- 0.0067`
-  - Overfitting Gap (`train - test`): `0.0045`
+20 Pytest tests across `backend/tests/` (`20 passed, 1 warning in 20.21s`):
+- `GET /api/health`, cascading `GET /api/locations/states`, `districts`, `taluks` (131 Karnataka taluks across `KA-Z1`..`KA-Z10`), and `404` on unknown district
+- `POST /api/soil/observe` physical observation interpretation and `GET /api/weather/advisory` (long-term zone normals separated cleanly from `unavailable` live weather)
+- All 9 observation-based crop recommendation scenarios in `backend/tests/test_recommendations.py`:
+  1. Red soil + limited irrigation
+  2. Black clayey soil + waterlogging
+  3. Sandy soil + low water
+  4. Loamy soil + moderate irrigation
+  5. Hilly land + high rainfall
+  6. Flat land + seasonal rainfall
+  7. Missing soil info
+  8. Unknown soil color
+  9. Unavailable live weather data
+- Structured `422` validation errors and `404` unknown location handling
+- Crop catalog (`26` crops), side-by-side comparison (`POST /api/crops/compare`), optional Soil Health Card analyzer (`POST /api/soil/analyze`), Knowledge Centre, feedback, protected Admin auth (`PBKDF2-HMAC-SHA256`), SPA routing, and standalone ML pipeline unit test (`ml.predictor`)
 
-## 2. Backend & API Automated Test Suite (`pytest`)
-
-17 Pytest tests in `backend/tests/` verifying:
-- `GET /api/health` database & ML artifact readiness check
-- Cascading `GET /api/locations/states`, `districts`, `taluks` and `404` on unknown district
-- Valid hybrid recommendation (`POST /api/recommendations`) & retrieval (`GET /api/recommendations/{id}`)
-- Regional & water hard constraint enforcement (excluding temperate `apple`, Gangetic `jute`, and dryland rainfed `rice`)
-- Rabi black-soil evaluation (Dharwad -> Chickpea / Jowar)
-- Reduced-information mode when soil NPK/pH marked unavailable
-- Input validation (`422` on invalid pH `18.5`, negative NPK, empty payload, unsupported state)
-- Extreme non-arable pH (`2.0`) returning `insufficient_data` with `recommendations = []`
-- Safe `503` error handling on missing ML artifacts and safe `500` handling on simulated `SQLAlchemyError` without leaking stack traces
-- Crop catalog (`26` crops), `404` on unknown crop, multi-crop comparison (`POST /api/crops/compare`)
-- Soil health interpretation (`POST /api/soil/analyze`), Knowledge Centre (`GET /api/knowledge`), Feedback (`POST /api/feedback`)
-- Protected Admin login (`401` on unauthorized/bad credentials, `200` with PBKDF2-SHA256 verified token)
-
-## 3. Frontend Typechecking, Tests, Build & Design Checks
+## 2. Frontend Typechecking, Tests, Build & Design Checks
 
 - `npm run lint` (`tsc --noEmit`): 0 TypeScript errors
-- `npm run test` (`vitest run`): 4/4 component & user-interaction tests passing (EN/KN switching, cascading dropdowns, inline pH validation, recommendation flow, comparison matrix, soil health, knowledge centre, privacy/terms routing, welcome animation skip & `prefers-reduced-motion` bypass)
-- `npm run build` (`tsc -b && vite build`): Production bundle built cleanly
-- `impeccable detect --json`: 0 errors, 0 warnings across HTML/CSS/TSX targets
+- `npm run test` (`vitest run`): 4/4 tests passing in `frontend/src/__tests__/App.test.tsx`:
+  - Renders intro overlay without any "Skip intro" button when intro not yet seen
+  - Bypasses intro overlay automatically under `prefers-reduced-motion: reduce`
+  - Toggles Dark/Light theme (`html.light`) and switches English <-> Kannada smoothly
+  - Walks through all 8 observation steps and renders advisory & weather results
+- `npm run build` (`tsc -b && vite build`): Production bundle built cleanly (`dist/index.html`, CSS, JS chunks)
+- `impeccable detect --json .`: `[]` (0 findings across frontend sources)
 
-## 4. Live Full-Stack Browser Verification
+## 3. Live Single-Origin Browser Verification Status
 
-Verified live running FastAPI (`http://127.0.0.1:8000`) + Vite (`http://127.0.0.1:5173`):
-- Confirmed `200 OK` / `201 Created` across live location, recommendation, comparison, soil analysis, and knowledge API requests
-- Verified mobile viewport layout at `390x844` with zero horizontal overflow; refined stepper label wrapping (`RecommendPage.tsx`) after inspecting the mobile screenshot so "Farming Conditions" no longer truncates.
+- FastAPI served the built production frontend (`frontend/dist`) at `http://127.0.0.1:8000` (`200 OK` on `/`, JS, CSS, and favicon requests).
+- Full automated interactive browser inspection did not complete because the browser subagent (`flash`) encountered upstream network timeouts (`http2: client connection force closed` and `net/http: TLS handshake timeout`).

@@ -1,6 +1,6 @@
-"""Health check endpoint verifying database and ML artifact readiness."""
+"""Health check endpoint verifying database and observation engine readiness."""
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/api", tags=["Health"])
 
 
 @router.get("/health", response_model=HealthResponse)
-def health_check(request: Request, db: Session = Depends(get_db)) -> HealthResponse:
+def health_check(db: Session = Depends(get_db)) -> HealthResponse:
     db_ok = True
     counts = {"locations": 0, "crops": 0, "knowledge_articles": 0, "recommendations": 0}
     try:
@@ -24,17 +24,13 @@ def health_check(request: Request, db: Session = Depends(get_db)) -> HealthRespo
     except Exception:
         db_ok = False
 
-    predictor = getattr(request.app.state, "predictor", None)
-    ml_loaded = bool(predictor and predictor.is_loaded)
-    metrics = predictor.get_metrics() if predictor else None
-    ml_version = f"rf_acc_{metrics['test_accuracy']:.3f}" if metrics and "test_accuracy" in metrics else None
-
-    overall = "ok" if db_ok and ml_loaded else "degraded"
+    overall = "ok" if db_ok else "degraded"
     return HealthResponse(
         status=overall,
         service="SmartKrishi API",
+        engine_mode="observation_rule_based",
         database_connected=db_ok,
-        ml_model_loaded=ml_loaded,
-        ml_model_version=ml_version,
+        ml_model_loaded=False,
+        ml_model_version="observation-rules-v2.0",
         record_counts=counts,
     )

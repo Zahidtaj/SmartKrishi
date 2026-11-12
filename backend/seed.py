@@ -13,6 +13,11 @@ from backend.models import (
     Location,
     RegionalCropRule,
 )
+from backend.regional_data import (
+    CROP_OBSERVATION_PROFILES,
+    LAST_VERIFIED_DATE,
+    ZONE_AGRICULTURAL_PROFILES,
+)
 from backend.security import hash_password
 from backend.seed_crops import CROP_SEED_DATA
 from backend.seed_knowledge import KNOWLEDGE_SEED_DATA
@@ -23,7 +28,7 @@ def seed_database(db: Session) -> dict[str, int]:
     """Populate initial locations, crops, rules, economic data, knowledge articles, and admin account."""
     counts = {"locations": 0, "crops": 0, "rules": 0, "articles": 0, "admin_users": 0}
 
-    # 1. Seed Locations
+    # 1. Seed Locations with verified Karnataka Agro-Climatic Zone profiles
     existing_locs = {
         (row.state, row.district, row.taluk)
         for row in db.query(Location.state, Location.district, Location.taluk).all()
@@ -31,6 +36,7 @@ def seed_database(db: Session) -> dict[str, int]:
     for loc in KARNATAKA_LOCATIONS:
         key = (loc["state"], loc["district"], loc["taluk"])
         if key not in existing_locs:
+            zone_profile = ZONE_AGRICULTURAL_PROFILES[loc["code"]]
             db.add(
                 Location(
                     state=loc["state"],
@@ -39,19 +45,30 @@ def seed_database(db: Session) -> dict[str, int]:
                     agro_climatic_zone=loc["zone"],
                     zone_code=loc["code"],
                     normal_annual_rainfall_mm=loc["rain"],
+                    typical_rainfall_pattern=zone_profile["typical_rainfall_pattern"],
                     dominant_soil_types=loc["soils"],
-                    data_source="Karnataka NARP 10 Agro-Climatic Zones Reference",
+                    common_soil_textures=zone_profile["common_soil_textures"],
+                    major_crops=zone_profile["major_crops"],
+                    recommended_seasons_summary=zone_profile["recommended_seasons_summary"],
+                    growing_period_info=zone_profile["growing_period_info"],
+                    regional_references=zone_profile["regional_references"],
+                    data_source="Karnataka NARP 10 Agro-Climatic Zones Reference (KSDA / UAS Bengaluru / UAS Dharwad / ICAR)",
+                    verification_status=zone_profile["verification_status"],
+                    last_updated=zone_profile["last_updated"],
                 )
             )
             counts["locations"] += 1
 
-    # 2. Seed Crops, Requirements, Regional Rules, and Illustrative Economic Data
+    # 2. Seed Crops, Observation Requirements, Regional Rules, and Illustrative Economic Data
     existing_crops = {row.crop_key: row for row in db.query(Crop).all()}
     for item in CROP_SEED_DATA:
-        if item["crop_key"] in existing_crops:
+        crop_key = item["crop_key"]
+        if crop_key in existing_crops:
             continue
+
+        obs = CROP_OBSERVATION_PROFILES[crop_key]
         crop = Crop(
-            crop_key=item["crop_key"],
+            crop_key=crop_key,
             name_en=item["name_en"],
             name_kn=item["name_kn"],
             scientific_name=item["scientific_name"],
@@ -59,20 +76,34 @@ def seed_database(db: Session) -> dict[str, int]:
             image_asset=item["image_asset"],
             growing_duration_days_min=item["dur_min"],
             growing_duration_days_max=item["dur_max"],
+            duration_category=obs["duration_category"],
             water_requirement_level=item["water_level"],
             water_requirement_mm_min=item["water_mm_min"],
             water_requirement_mm_max=item["water_mm_max"],
             seed_rate_kg_per_acre=item["seed_rate"],
+            household_food_crop=obs["household_food_crop"],
+            commercial_crop=obs["commercial_crop"],
             cultivation_guidance_en=item["guidance_en"],
             cultivation_guidance_kn=item["guidance_kn"],
             information_source=item["source"],
             record_status="verified_reference",
+            verification_status="verified_institutional_reference",
+            last_updated=LAST_VERIFIED_DATE,
             in_ml_dataset=item["in_ml_dataset"],
             is_active=True,
         )
         req_data = item["req"]
         crop.requirement = CropRequirement(
             suitable_soil_types=req_data["soils"],
+            suitable_textures=obs["suitable_textures"],
+            suitable_drainage=obs["suitable_drainage"],
+            moisture_needs=obs["moisture_needs"],
+            suitable_land_topography=obs["suitable_land_topography"],
+            min_soil_depth=obs["min_soil_depth"],
+            drought_tolerance=obs["drought_tolerance"],
+            waterlogging_tolerance=obs["waterlogging_tolerance"],
+            sowing_months=obs["sowing_months"],
+            weather_risk_thresholds=obs["weather_risk_thresholds"],
             ph_min=req_data["ph_min"],
             ph_max=req_data["ph_max"],
             ph_optimal_min=req_data["ph_opt_min"],
@@ -122,8 +153,8 @@ def seed_database(db: Session) -> dict[str, int]:
                             season=season,
                             suitability_level="recommended",
                             priority_weight=1.0,
-                            rule_notes_en=f"Documented for {zone_code} during {season} when soil and water criteria are satisfied.",
-                            rule_notes_kn=f"{zone_code} ವಲಯದಲ್ಲಿ {season} ಹಂಗಾಮಿಗೆ ಮಣ್ಣು ಮತ್ತು ನೀರಾವರಿ ಪೂರಕವಾಗಿದ್ದಲ್ಲಿ ಸೂಕ್ತ.",
+                            rule_notes_en=f"Documented for {zone_code} during {season} when observed land, soil texture, drainage, and water criteria align.",
+                            rule_notes_kn=f"{zone_code} ವಲಯದಲ್ಲಿ {season} ಹಂಗಾಮಿಗೆ ಭೂಮಿ, ಮಣ್ಣಿನ ವಿನ್ಯಾಸ, ನೀರು ಬಸಿಯುವಿಕೆ ಮತ್ತು ನೀರಾವರಿ ಪೂರಕವಾಗಿದ್ದಲ್ಲಿ ಸೂಕ್ತ.",
                             source=item["source"],
                         )
                     )

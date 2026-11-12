@@ -67,10 +67,10 @@ export function KnowledgePage() {
           <p className="text-base text-secondary leading-relaxed">
             {lang === "kn" ? activeArticle.summary_kn : activeArticle.summary_en}
           </p>
-          <div className="border-t border-white/10 pt-5 space-y-4 text-sm leading-relaxed text-ink/90 whitespace-pre-line max-w-[70ch]">
+          <div className="border-t border-ink/10 pt-5 space-y-4 text-sm leading-relaxed text-ink/90 whitespace-pre-line max-w-[70ch]">
             {lang === "kn" ? activeArticle.content_kn : activeArticle.content_en}
           </div>
-          <div className="border-t border-white/10 pt-4 text-xs text-muted flex flex-wrap items-center gap-2">
+          <div className="border-t border-ink/10 pt-4 text-xs text-muted flex flex-wrap items-center gap-2">
             <span>
               {t.knowledge.sourceLabel}: {activeArticle.source_name}
             </span>
@@ -122,7 +122,7 @@ export function KnowledgePage() {
               className={`min-h-[38px] rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
                 category === cat.id
                   ? "border-accent bg-accent/15 text-accent"
-                  : "border-white/15 bg-surface text-secondary hover:text-ink"
+                  : "border-ink/15 bg-surface text-secondary hover:text-ink"
               }`}
             >
               {lang === "kn" ? cat.labelKn : cat.labelEn}
@@ -154,7 +154,7 @@ export function KnowledgePage() {
                   {lang === "kn" ? art.summary_kn : art.summary_en}
                 </p>
               </div>
-              <div className="border-t border-white/10 pt-3 space-y-3">
+              <div className="border-t border-ink/10 pt-3 space-y-3">
                 <p className="text-xs text-muted">
                   {t.knowledge.sourceLabel}: {art.source_name}
                 </p>

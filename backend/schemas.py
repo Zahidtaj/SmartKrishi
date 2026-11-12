@@ -15,8 +15,9 @@ class ErrorResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str
     service: str
+    engine_mode: str = "observation_rule_based"
     database_connected: bool
-    ml_model_loaded: bool
+    ml_model_loaded: bool = False
     ml_model_version: str | None = None
     record_counts: dict[str, int]
 
@@ -43,8 +44,16 @@ class TalukItem(BaseModel):
     agro_climatic_zone: str
     zone_code: str
     normal_annual_rainfall_mm: float | None
+    typical_rainfall_pattern: str
     dominant_soil_types: list[str]
+    common_soil_textures: list[str]
+    major_crops: list[str]
+    recommended_seasons_summary: dict[str, str]
+    growing_period_info: str
+    regional_references: list[str]
     data_source: str
+    verification_status: str
+    last_updated: date
 
 
 class TalukListResponse(BaseModel):
@@ -55,16 +64,14 @@ class TalukListResponse(BaseModel):
 
 class CropRequirementSchema(BaseModel):
     suitable_soil_types: list[str]
-    ph_min: float
-    ph_max: float
-    ph_optimal_min: float
-    ph_optimal_max: float
-    nitrogen_min: float
-    nitrogen_max: float
-    phosphorus_min: float
-    phosphorus_max: float
-    potassium_min: float
-    potassium_max: float
+    suitable_textures: list[str]
+    suitable_drainage: list[str]
+    moisture_needs: str
+    suitable_land_topography: list[str]
+    min_soil_depth: str
+    drought_tolerance: str
+    waterlogging_tolerance: str
+    sowing_months: list[str]
     temp_min_c: float
     temp_max_c: float
     humidity_min_pct: float
@@ -100,14 +107,18 @@ class CropSummarySchema(BaseModel):
     image_asset: str
     growing_duration_days_min: int
     growing_duration_days_max: int
+    duration_category: str
     water_requirement_level: str
     water_requirement_mm_min: int
     water_requirement_mm_max: int
     seed_rate_kg_per_acre: str
     record_status: str
+    verification_status: str
+    last_updated: date
     in_ml_dataset: bool
     suitable_seasons: list[str]
     suitable_soil_types: list[str]
+    suitable_textures: list[str]
 
 
 class CropDetailSchema(CropSummarySchema):
@@ -118,36 +129,96 @@ class CropDetailSchema(CropSummarySchema):
     economic_data: list[CropEconomicSchema]
 
 
+SoilColorType = Literal[
+    "red",
+    "reddish_brown",
+    "dark_black",
+    "brown",
+    "yellowish",
+    "grey",
+    "sandy_pale",
+    "mixed_uncertain",
+]
+SoilTextureType = Literal["sandy", "clayey", "loamy", "silty", "mixed", "not_sure"]
+DrainageType = Literal["very_quickly", "moderately", "remains_hours", "remains_days", "not_sure"]
+MoistureRetentionType = Literal["dries_quickly", "short_period", "several_days", "not_sure"]
+LandTopographyType = Literal["flat", "slightly_sloping", "steep_hilly", "low_lying", "rocky_stony"]
+SoilDepthType = Literal["shallow", "medium", "deep", "unknown"]
+VisibleStonesType = Literal["none_few", "moderate", "many_stony", "not_sure"]
+WaterloggingIssueType = Literal["none", "occasional", "frequent", "not_sure"]
+ErosionIssueType = Literal["none", "mild", "severe", "not_sure"]
+WaterSourceType = Literal[
+    "rainfed",
+    "borewell",
+    "open_well",
+    "canal",
+    "pond_reservoir",
+    "drip_irrigation",
+    "multiple_sources",
+]
+WaterReliabilityType = Literal["throughout_season", "certain_months", "limited", "uncertain"]
+DurationPreferenceType = Literal["short", "long", "flexible"]
+FarmingPriorityType = Literal[
+    "low_water",
+    "short_duration",
+    "land_suitability",
+    "household_food",
+    "commercial",
+]
+
+
 class RecommendationRequest(BaseModel):
+    # Step 1: Location
     state: str = Field(..., min_length=2, max_length=80)
     district: str = Field(..., min_length=2, max_length=80)
     taluk: str = Field(..., min_length=2, max_length=80)
     village: str | None = Field(default=None, max_length=100)
-    agro_climatic_zone: str | None = Field(default=None, max_length=120)
 
-    soil_type: Literal["Red", "Black", "Alluvial", "Laterite", "Sandy", "Loamy", "Clay"]
-    soil_data_available: bool = True
-    soil_measurement_source: Literal["soil_test", "estimate", "unavailable"] = "estimate"
-    soil_test_date: date | None = None
-    ph: float | None = Field(default=None, ge=0.0, le=14.0)
-    nitrogen: float | None = Field(default=None, ge=0.0, le=500.0)
-    phosphorus: float | None = Field(default=None, ge=0.0, le=500.0)
-    potassium: float | None = Field(default=None, ge=0.0, le=600.0)
+    # Step 2: Soil Appearance
+    soil_color: SoilColorType = "mixed_uncertain"
 
-    season: Literal["Kharif", "Rabi", "Zaid", "Perennial"]
-    irrigation_type: Literal["Rainfed", "Borewell", "Canal", "Drip", "Sprinkler", "Tank / Open Well"]
-    water_availability: Literal["Rainfed", "Limited irrigation", "Moderate irrigation", "Assured irrigation"]
-    land_area_acres: float = Field(..., gt=0.0, le=1000.0)
-    farming_method: Literal["Conventional", "Organic / Natural", "Integrated (INM/IPM)", "Mixed / Multi-crop"]
+    # Step 3: Soil Texture
+    soil_texture: SoilTextureType = "not_sure"
+
+    # Step 4: Water Drainage & Moisture Retention
+    drainage_after_rain: DrainageType = "not_sure"
+    moisture_retention: MoistureRetentionType = "not_sure"
+
+    # Step 5: Land Characteristics
+    land_topography: LandTopographyType = "flat"
+    soil_depth: SoilDepthType = "unknown"
+    visible_stones: VisibleStonesType = "not_sure"
+    waterlogging_issue: WaterloggingIssueType = "not_sure"
+    erosion_issue: ErosionIssueType = "not_sure"
+
+    # Step 6: Water Availability
+    water_source: WaterSourceType = "rainfed"
+    water_reliability: WaterReliabilityType = "uncertain"
+
+    # Step 7: Farming History (all optional)
     previous_crop: str | None = Field(default=None, max_length=80)
+    previous_crop_success: Literal["yes", "partial", "no", "not_sure"] | None = None
+    drought_history: Literal["yes", "no", "uncertain"] | None = None
+    flood_history: Literal["yes", "no", "uncertain"] | None = None
+    pest_disease_history: str | None = Field(default=None, max_length=240)
+    land_area_acres: float | None = Field(default=None, gt=0.0, le=1000.0)
 
-    temperature: float | None = Field(default=None, ge=-5.0, le=60.0)
-    humidity: float | None = Field(default=None, ge=0.0, le=100.0)
-    rainfall: float | None = Field(default=None, ge=0.0, le=5000.0)
-    climate_source: Literal["measured", "estimate", "reference"] = "estimate"
+    # Step 8: Season and Planning
+    season: Literal["Kharif", "Rabi", "Zaid", "Perennial"]
+    intended_sowing_month: str | None = Field(default=None, max_length=24)
+    duration_preference: DurationPreferenceType = "flexible"
+    farming_priority: FarmingPriorityType = "land_suitability"
+
     language: Literal["en", "kn"] = "en"
+    simulate_weather_unavailable: bool = False
 
-    @field_validator("village", "previous_crop", "agro_climatic_zone", mode="before")
+    @field_validator(
+        "village",
+        "previous_crop",
+        "pest_disease_history",
+        "intended_sowing_month",
+        mode="before",
+    )
     @classmethod
     def _strip_empty_strings(cls, v: Any) -> Any:
         if isinstance(v, str):
@@ -158,11 +229,11 @@ class RecommendationRequest(BaseModel):
 
 class DimensionScoresSchema(BaseModel):
     location: float
-    soil: float
+    soil_land: float
     water: float
     seasonal: float
-    climatic: float
-    nutrient: float
+    climate: float
+    priority_history: float
 
 
 class RecommendedCropResultSchema(BaseModel):
@@ -176,12 +247,14 @@ class RecommendedCropResultSchema(BaseModel):
     image_asset: str
     suitability_category: str
     illustrative_score: float
-    ml_probability: float | None
     dimension_scores: DimensionScoresSchema
     reasons_en: list[str]
     reasons_kn: list[str]
     limitations_en: list[str]
     limitations_kn: list[str]
+    missing_info_en: list[str]
+    missing_info_kn: list[str]
+    compatibility_badges: dict[str, str]
     conflict_flags: list[str]
     water_requirement_level: str
     water_requirement_mm_min: int
@@ -205,9 +278,12 @@ class RecommendationResponse(BaseModel):
     disclaimer_en: str
     disclaimer_kn: str
     warnings: list[str]
+    missing_information: list[str]
     insufficient_data_reason: str | None
-    missing_fields: list[str]
     location_context: dict[str, Any]
+    soil_interpretation: dict[str, Any]
+    weather_advisory: dict[str, Any]
+    input_provenance: dict[str, Any]
     input_summary: dict[str, Any]
     recommendations: list[RecommendedCropResultSchema]
 
@@ -257,6 +333,18 @@ class CompareCropsResponse(BaseModel):
     disclaimer_en: str
     disclaimer_kn: str
     crops: list[ComparedCropItem]
+
+
+class SoilObservationRequest(BaseModel):
+    soil_color: SoilColorType = "mixed_uncertain"
+    soil_texture: SoilTextureType = "not_sure"
+    drainage_after_rain: DrainageType = "not_sure"
+    moisture_retention: MoistureRetentionType = "not_sure"
+    soil_depth: SoilDepthType = "unknown"
+    visible_stones: VisibleStonesType = "not_sure"
+    waterlogging_issue: WaterloggingIssueType = "not_sure"
+    erosion_issue: ErosionIssueType = "not_sure"
+    land_topography: LandTopographyType | None = None
 
 
 class SoilAnalysisRequest(BaseModel):

@@ -6,10 +6,46 @@ def test_health_endpoint(client):
     assert resp.status_code == 200
     data = resp.json()
     assert data["status"] == "ok"
+    assert data["engine_mode"] == "observation_rule_based"
     assert data["database_connected"] is True
-    assert data["ml_model_loaded"] is True
     assert data["record_counts"]["crops"] >= 26
     assert data["record_counts"]["locations"] >= 100
+
+
+def test_soil_observe_and_weather_advisory_endpoints(client):
+    obs_resp = client.post(
+        "/api/soil/observe",
+        json={
+            "soil_color": "dark_black",
+            "soil_texture": "clayey",
+            "drainage_after_rain": "remains_days",
+            "moisture_retention": "several_days",
+            "soil_depth": "deep",
+            "visible_stones": "none_few",
+            "waterlogging_issue": "frequent",
+            "erosion_issue": "none",
+        },
+    )
+    assert obs_resp.status_code == 200
+    obs = obs_resp.json()
+    assert obs["effective_drainage"] == "waterlogging_prone"
+    assert "cannot measure pH" in obs["color_disclaimer_en"]
+
+    w_resp = client.get(
+        "/api/weather/advisory",
+        params={
+            "state": "Karnataka",
+            "district": "Tumakuru",
+            "taluk": "Tumakuru",
+            "season": "Kharif",
+            "simulate_unavailable": "true",
+        },
+    )
+    assert w_resp.status_code == 200
+    w_data = w_resp.json()
+    assert w_data["current_weather"]["status"] == "unavailable"
+    assert w_data["short_term_forecast"]["status"] == "unavailable"
+    assert w_data["long_term_climate"]["zone_code"] == "KA-Z5"
 
 
 def test_location_cascade_states_districts_taluks(client):

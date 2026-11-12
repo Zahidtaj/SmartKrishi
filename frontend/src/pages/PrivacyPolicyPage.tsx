@@ -8,10 +8,11 @@ export function PrivacyPolicyPage() {
         <section className="space-y-2">
           <h2 className="text-base font-semibold text-ink">1. Data This Prototype Collects</h2>
           <p>
-            When you submit a crop recommendation evaluation, SmartKrishi stores the agricultural inputs you
-            provide in its local SQLite database: selected state, district, taluk, optional village name, soil
-            type, optional pH/NPK values, farming season, irrigation type, water availability, land area, and
-            climate estimates.
+            When you submit a crop advisory request, SmartKrishi stores the field observation inputs you
+            provide in its local SQLite database: selected state, district, taluk, optional village name,
+            observed soil colour, hand-feel soil texture, rainwater drainage and moisture retention, land slope
+            and depth observations, water source reliability, optional crop history, and seasonal priorities.
+            Laboratory NPK/pH values are NOT required.
           </p>
         </section>
 
@@ -19,8 +20,8 @@ export function PrivacyPolicyPage() {
           <h2 className="text-base font-semibold text-ink">2. Personal Information Policy</h2>
           <p>
             SmartKrishi intentionally does NOT request or collect personal identifiers such as phone numbers,
-            Aadhaar numbers, email addresses, or residential street addresses in farmer workflows. Feedback
-            submissions store only the feedback category, optional rating, optional district name, and comment text.
+            Aadhaar numbers, GPS coordinates, email addresses, or residential street addresses in farmer workflows.
+            Feedback submissions store only the feedback category, optional rating, optional district name, and comment text.
           </p>
         </section>
 
@@ -28,7 +29,7 @@ export function PrivacyPolicyPage() {
           <h2 className="text-base font-semibold text-ink">3. Local Browser Storage</h2>
           <p>
             SmartKrishi uses browser <code className="font-mono text-ink">localStorage</code> strictly to remember
-            your chosen interface language (English or Kannada), and{" "}
+            your chosen interface language (English or Kannada) and Light/Dark theme preference, and{" "}
             <code className="font-mono text-ink">sessionStorage</code> to remember whether the welcome animation
             has already played during your current session or to hold a temporary administrator bearer token.
           </p>

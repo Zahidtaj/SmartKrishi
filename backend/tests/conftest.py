@@ -9,15 +9,6 @@ from sqlalchemy.orm import sessionmaker
 from backend.database import Base, get_db
 from backend.main import create_app
 from backend.seed import seed_database
-from ml.config import ARTIFACTS_DIR
-from ml.predictor import CropMLPredictor
-
-
-@pytest.fixture(scope="session")
-def predictor() -> CropMLPredictor:
-    pred = CropMLPredictor(artifacts_dir=ARTIFACTS_DIR)
-    pred.load()
-    return pred
 
 
 @pytest.fixture()
@@ -41,9 +32,8 @@ def db_session(tmp_path: Path):
 
 
 @pytest.fixture()
-def client(db_session, predictor: CropMLPredictor):
+def client(db_session):
     app = create_app()
-    app.state.predictor = predictor
 
     def _override_get_db():
         try:

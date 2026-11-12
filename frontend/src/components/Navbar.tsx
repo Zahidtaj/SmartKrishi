@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Globe, Menu, ShieldCheck, X } from "lucide-react";
+import { Globe, Menu, Moon, ShieldCheck, Sun, X } from "lucide-react";
+import { useTheme } from "../context/ThemeContext";
 import { useI18n } from "../i18n";
 
 export function Navbar() {
   const { lang, setLang, t } = useI18n();
+  const { theme, toggleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navItems = [
@@ -16,10 +18,10 @@ export function Navbar() {
   ];
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `inline-flex items-center min-h-[40px] px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+    `inline-flex items-center min-h-[40px] px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150 ${
       isActive
-        ? "bg-elevated text-accent border border-accent/30"
-        : "text-secondary hover:text-ink hover:bg-elevated/60"
+        ? "bg-elevated text-accent border border-accent/35 shadow-sm"
+        : "text-secondary hover:text-ink hover:bg-elevated/70"
     }`;
 
   return (
@@ -31,13 +33,13 @@ export function Navbar() {
         Skip to content
       </a>
 
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <NavLink to="/" className="flex items-center gap-2.5 text-ink focus-visible:outline-accent">
-          <svg width="28" height="28" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-            <circle cx="32" cy="32" r="26" stroke="#2D6A4F" strokeWidth="2.5" />
-            <path d="M32 48V24" stroke="#52B788" strokeWidth="3.2" strokeLinecap="round" />
-            <path d="M32 34C24 34 19 28 19 21C26 21 32 26 32 34Z" fill="#52B788" fillOpacity="0.35" stroke="#52B788" strokeWidth="2.2" />
-            <path d="M32 28C40 28 45 22 45 15C38 15 32 20 32 28Z" fill="#52B788" fillOpacity="0.65" stroke="#52B788" strokeWidth="2.2" />
+          <svg width="30" height="30" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <circle cx="32" cy="32" r="26" stroke="currentColor" strokeOpacity="0.45" strokeWidth="2.4" className="text-accent" />
+            <path d="M32 48V24" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" className="text-accent" />
+            <path d="M32 34C24 34 19 28 19 21C26 21 32 26 32 34Z" fill="currentColor" fillOpacity="0.32" stroke="currentColor" strokeWidth="2.2" className="text-accent" />
+            <path d="M32 28C40 28 45 22 45 15C38 15 32 20 32 28Z" fill="currentColor" fillOpacity="0.62" stroke="currentColor" strokeWidth="2.2" className="text-accent" />
           </svg>
           <span className="text-lg font-semibold tracking-tight text-ink">SmartKrishi</span>
         </NavLink>
@@ -51,20 +53,35 @@ export function Navbar() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
+          {/* Theme switcher with circular View Transition origin */}
+          <button
+            type="button"
+            onClick={(e) => toggleTheme({ clientX: e.clientX, clientY: e.clientY })}
+            aria-label={theme === "dark" ? t.nav.switchToLight : t.nav.switchToDark}
+            title={theme === "dark" ? t.nav.switchToLight : t.nav.switchToDark}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-ink/15 bg-surface text-ink transition-all duration-150 hover:border-accent hover:bg-elevated active:scale-95"
+          >
+            {theme === "dark" ? (
+              <Sun className="h-4 w-4 text-warning" aria-hidden="true" />
+            ) : (
+              <Moon className="h-4 w-4 text-accent" aria-hidden="true" />
+            )}
+          </button>
+
           {/* Bilingual switcher */}
           <div
             role="group"
             aria-label={t.nav.languageLabel}
-            className="inline-flex items-center rounded-md border border-white/15 bg-surface p-0.5"
+            className="inline-flex items-center rounded-lg border border-ink/15 bg-surface p-0.5"
           >
             <Globe className="ml-2 mr-1 h-4 w-4 text-muted" aria-hidden="true" />
             <button
               type="button"
               onClick={() => setLang("en")}
               aria-pressed={lang === "en"}
-              className={`min-h-[34px] rounded px-2.5 text-xs font-semibold transition-colors ${
-                lang === "en" ? "bg-accent text-canvas" : "text-secondary hover:text-ink"
+              className={`min-h-[34px] rounded-md px-2.5 text-xs font-semibold transition-colors ${
+                lang === "en" ? "bg-accent text-[var(--sk-accent-ink)]" : "text-secondary hover:text-ink"
               }`}
             >
               EN
@@ -73,8 +90,8 @@ export function Navbar() {
               type="button"
               onClick={() => setLang("kn")}
               aria-pressed={lang === "kn"}
-              className={`min-h-[34px] rounded px-2.5 text-xs font-semibold transition-colors ${
-                lang === "kn" ? "bg-accent text-canvas" : "text-secondary hover:text-ink"
+              className={`min-h-[34px] rounded-md px-2.5 text-xs font-semibold transition-colors ${
+                lang === "kn" ? "bg-accent text-[var(--sk-accent-ink)]" : "text-secondary hover:text-ink"
               }`}
             >
               ಕನ್ನಡ
@@ -83,7 +100,7 @@ export function Navbar() {
 
           <NavLink
             to="/admin"
-            className="hidden sm:inline-flex items-center gap-1.5 min-h-[38px] rounded-md border border-white/15 px-3 py-1.5 text-xs font-medium text-secondary hover:text-ink hover:bg-elevated"
+            className="hidden sm:inline-flex items-center gap-1.5 min-h-[40px] rounded-lg border border-ink/15 bg-surface px-3 py-1.5 text-xs font-medium text-secondary transition-colors hover:border-accent/50 hover:text-ink hover:bg-elevated"
           >
             <ShieldCheck className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
             <span>{t.nav.admin}</span>
@@ -94,7 +111,7 @@ export function Navbar() {
             onClick={() => setMobileOpen((prev) => !prev)}
             aria-expanded={mobileOpen}
             aria-label={mobileOpen ? t.nav.closeMenu : t.nav.openMenu}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-white/15 text-ink hover:bg-elevated lg:hidden"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-ink/15 text-ink hover:bg-elevated lg:hidden"
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -105,7 +122,7 @@ export function Navbar() {
       {mobileOpen && (
         <nav
           aria-label="Mobile navigation"
-          className="border-t border-white/10 bg-canvas px-4 py-4 lg:hidden"
+          className="border-t border-ink/10 bg-canvas px-4 py-4 lg:hidden"
         >
           <div className="flex flex-col gap-1.5">
             {navItems.map((item) => (

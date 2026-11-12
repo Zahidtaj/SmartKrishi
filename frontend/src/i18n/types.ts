@@ -1,3 +1,8 @@
+export interface OptionCopy {
+  label: string;
+  desc?: string;
+}
+
 export interface TranslationDictionary {
   brandName: string;
   brandTagline: string;
@@ -11,9 +16,10 @@ export interface TranslationDictionary {
     languageLabel: string;
     openMenu: string;
     closeMenu: string;
+    switchToLight: string;
+    switchToDark: string;
   };
   welcome: {
-    skip: string;
     subtitle: string;
   };
   home: {
@@ -41,49 +47,55 @@ export interface TranslationDictionary {
     limitsTitle: string;
     limitsPoints: string[];
   };
-  form: {
+  wizard: {
     pageTitle: string;
     pageSubtitle: string;
-    stepLocation: string;
-    stepSoil: string;
-    stepFarming: string;
-    stepClimate: string;
-    state: string;
-    district: string;
-    taluk: string;
-    village: string;
-    agroZone: string;
-    talukRefHint: string;
-    soilType: string;
-    soilDataToggle: string;
-    soilUnavailableNote: string;
-    soilSource: string;
-    soilSourceTest: string;
-    soilSourceEstimate: string;
-    soilTestDate: string;
-    ph: string;
-    nitrogen: string;
-    phosphorus: string;
-    potassium: string;
-    season: string;
-    irrigationType: string;
-    waterAvailability: string;
-    landArea: string;
-    farmingMethod: string;
-    previousCrop: string;
-    temperature: string;
-    humidity: string;
-    rainfall: string;
-    climateSource: string;
-    climateSourceMeasured: string;
-    climateSourceEstimate: string;
-    climateSourceReference: string;
-    climateNoLiveWarning: string;
+    stepOf: string;
+    optionalBadge: string;
     next: string;
     back: string;
     submit: string;
     submitting: string;
     selectOption: string;
+    steps: {
+      location: { title: string; subtitle: string };
+      soilColor: { title: string; subtitle: string; question: string; disclaimer: string };
+      soilTexture: { title: string; subtitle: string; question: string; guideTitle: string; guideBody: string };
+      drainage: { title: string; subtitle: string; qRain: string; qMoisture: string };
+      land: { title: string; subtitle: string; qTopo: string; qDepth: string; qStones: string; qWaterlog: string; qErosion: string };
+      water: { title: string; subtitle: string; qSource: string; qReliability: string };
+      history: { title: string; subtitle: string; qPrevCrop: string; qSuccess: string; qDrought: string; qFlood: string; qPests: string; qArea: string };
+      season: { title: string; subtitle: string; qSeason: string; qMonth: string; qDuration: string; qPriority: string };
+    };
+    fields: {
+      state: string;
+      district: string;
+      taluk: string;
+      village: string;
+      agroZone: string;
+      zoneRefHint: string;
+      majorCropsLabel: string;
+      prevCropPlaceholder: string;
+      pestPlaceholder: string;
+      areaPlaceholder: string;
+      monthAny: string;
+    };
+    colors: Record<string, OptionCopy>;
+    textures: Record<string, OptionCopy>;
+    drainages: Record<string, OptionCopy>;
+    moistures: Record<string, OptionCopy>;
+    topographies: Record<string, OptionCopy>;
+    depths: Record<string, OptionCopy>;
+    stones: Record<string, OptionCopy>;
+    waterlogs: Record<string, OptionCopy>;
+    erosions: Record<string, OptionCopy>;
+    waterSources: Record<string, OptionCopy>;
+    waterReliabilities: Record<string, OptionCopy>;
+    seasons: Record<string, OptionCopy>;
+    durations: Record<string, OptionCopy>;
+    priorities: Record<string, OptionCopy>;
+    yesNoUncertain: Record<string, string>;
+    successOptions: Record<string, string>;
   };
   results: {
     pageTitle: string;
@@ -95,15 +107,26 @@ export interface TranslationDictionary {
     insufficientTitle: string;
     reasonsTitle: string;
     limitationsTitle: string;
+    missingTitle: string;
     guidanceTitle: string;
     dimensionsTitle: string;
+    soilObsTitle: string;
+    weatherAdvisoryTitle: string;
+    climateNormalsLabel: string;
+    currentWeatherLabel: string;
+    forecastLabel: string;
+    seasonalOutlookLabel: string;
+    sowingSuitabilityLabel: string;
+    heavyRainRiskLabel: string;
+    drySpellRiskLabel: string;
+    irrigationPlanLabel: string;
+    provenanceTitle: string;
     waterNeed: string;
     seasonLabel: string;
     durationLabel: string;
     daysUnit: string;
     sourceLabel: string;
     viewDetails: string;
-    mlProbabilityLabel: string;
     feedbackTitle: string;
     feedbackPrompt: string;
     feedbackSubmit: string;
@@ -121,6 +144,9 @@ export interface TranslationDictionary {
   soilHealth: {
     pageTitle: string;
     pageSubtitle: string;
+    observeButton: string;
+    optionalLabTitle: string;
+    optionalLabSubtitle: string;
     analyzeButton: string;
     shcFutureTitle: string;
     shcFutureBody: string;

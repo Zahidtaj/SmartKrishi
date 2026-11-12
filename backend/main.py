@@ -10,23 +10,15 @@ from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
 from backend.config import PROJECT_ROOT, get_settings
-from backend.routers import admin, crops, health, knowledge, locations, recommendations
+from backend.routers import admin, crops, health, knowledge, locations, recommendations, weather
 from backend.seed import initialize_and_seed
-from ml.predictor import CropMLPredictor, ModelLoadError
 
 logger = logging.getLogger("smartkrishi")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    settings = get_settings()
     initialize_and_seed()
-    predictor = CropMLPredictor(artifacts_dir=settings.model_dir)
-    try:
-        predictor.load()
-    except ModelLoadError as exc:
-        logger.warning("ML model could not be loaded at startup: %s", exc)
-    app.state.predictor = predictor
     yield
 
 
@@ -34,8 +26,8 @@ def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
         title="SmartKrishi API",
-        version="1.0.0",
-        description="Hybrid ML + Agronomic Rule-Based Crop Recommendation and Decision Support REST API.",
+        version="2.0.0",
+        description="Observation-Based and Location-Aware Crop Recommendation and Agricultural Decision Support REST API.",
         lifespan=lifespan,
     )
 
@@ -108,6 +100,7 @@ def create_app() -> FastAPI:
     app.include_router(knowledge.soil_router)
     app.include_router(knowledge.knowledge_router)
     app.include_router(knowledge.feedback_router)
+    app.include_router(weather.router)
     app.include_router(admin.router)
 
     frontend_dist = (PROJECT_ROOT / "frontend" / "dist").resolve()

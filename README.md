@@ -1,62 +1,57 @@
 # SmartKrishi — Smart Crop Recommendation and Agricultural Decision Support System
 
-SmartKrishi is a VTU Community Project web application designed to help farmers and agricultural decision-makers evaluate suitable crops based on soil characteristics, Karnataka geographical taluk/district location, growing season, climatic estimates, and water availability.
+SmartKrishi is a VTU Community Project web application designed to help farmers and agricultural decision-makers evaluate suitable crops using **farmer-friendly field observations and Karnataka location intelligence** — without requiring mandatory laboratory N, P, K, or pH measurements.
 
-Instead of returning an opaque crop label from a machine learning classifier alone, SmartKrishi pairs a Scikit-learn Random Forest model with an explicit agronomic rule engine, hard regional/water/seasonal constraints, transparent scoring dimensions, bilingual English and Kannada explanations, crop comparison with documented economic assumptions, soil health interpretation, and an attribution-backed Agricultural Knowledge Centre.
+Farmers complete an **8-step guided wizard** (Location, Soil Appearance with educational soil swatches, Soil Texture + feel guide, Water Drainage & Moisture Retention, Land Characteristics, Water Availability, Optional Farming History, and Season & Planning). SmartKrishi pairs verified Karnataka NARP Agro-Climatic Zone profiles (`KA-Z1`–`KA-Z10`) with a transparent 7-stage agronomic rule engine, a physical Soil Observation Interpretation module, a Weather & Climate Intelligence module (strictly separating long-term climate normals from optional live weather feeds), bilingual English and Kannada explanations, Light/Dark mode with a circular reveal transition, crop comparison with illustrative economic assumptions, and an attribution-backed Agricultural Knowledge Centre.
 
 ## Technology Stack
 
-- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, Lucide React icons, Recharts
+- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS (Dark & Light modes), Lucide React icons, Recharts
 - **Backend API:** Python 3.13, FastAPI, Pydantic v2, Uvicorn
-- **Machine Learning:** Pandas, NumPy, Scikit-learn (`RandomForestClassifier`), Joblib
+- **Decision Engine & Optional ML:** Transparent 7-stage agronomic rule engine + Scikit-learn `RandomForestClassifier` (secondary/research baseline for optional lab workflows)
 - **Database:** SQLite (local prototype) via SQLAlchemy 2.x (PostgreSQL-compatible relational schema)
-- **Testing:** Pytest + FastAPI TestClient (backend & ML), Vitest + React Testing Library (frontend)
+- **Testing:** Pytest + FastAPI TestClient (backend & rules), Vitest + React Testing Library (frontend)
 
 ## Folder Structure
 
 ```text
 SmartKrishi/
 ├── backend/
-│   ├── config.py                  # Env settings & CORS/DB configuration
+│   ├── config.py                  # Env settings, CORS, DB, & optional live weather toggle
 │   ├── database.py                # SQLAlchemy engine & session management
-│   ├── main.py                    # FastAPI app, middleware & global error handlers
-│   ├── models.py                  # 13 SQLAlchemy relational models (12 core entities + AdminUser)
-│   ├── schemas.py                 # Pydantic request/response schemas
+│   ├── main.py                    # FastAPI app, SPA serving & global error handlers
+│   ├── models.py                  # Relational ORM schema (12 core entities + AdminUser)
+│   ├── regional_data.py           # Karnataka KA-Z1..KA-Z10 agronomic profiles & crop traits
+│   ├── schemas.py                 # Pydantic v2 observation, weather, & advisory schemas
 │   ├── security.py                # PBKDF2-HMAC-SHA256 password hashing & HMAC bearer tokens
 │   ├── seed.py                    # Idempotent database initialization & seeding
 │   ├── seed_locations.py          # Karnataka Districts, Taluks & 10 NARP Agro-Climatic Zones
 │   ├── seed_crops.py              # Agronomic profiles, rules, & illustrative economic baselines
 │   ├── seed_knowledge.py          # Bilingual Knowledge Centre articles with institutional sources
 │   ├── rules/
-│   │   ├── agronomic_rules.py     # Regional, soil, pH, NPK, season, water & climate rule engine
+│   │   ├── agronomic_rules.py     # 7-stage observation-based filtering, conflict caps & explanations
 │   │   └── scoring.py             # Configurable dimension scoring weights & suitability labels
 │   ├── services/
 │   │   ├── recommendation_service.py
+│   │   ├── soil_observation_service.py  # Physical soil observation synthesis (never guesses NPK/pH)
+│   │   ├── weather_service.py           # Climate normals vs live weather/forecast module
 │   │   ├── comparison_service.py
-│   │   └── soil_health_service.py
-│   ├── routers/                   # Modular REST API routers
-│   └── tests/                     # Pytest backend & ML test suites
+│   │   └── soil_health_service.py       # Optional lab Soil Health Card pH/NPK reference
+│   ├── routers/                   # Modular REST API routers (locations, crops, recommendations, weather, knowledge, admin)
+│   └── tests/                     # Pytest backend, scenario & ML test suites
 ├── datasets/
 │   ├── raw/crop_recommendation.csv
 │   ├── processed/dataset_validation_report.json
 │   └── metadata/crop_recommendation_provenance.json
-├── ml/
-│   ├── config.py
-│   ├── data_loader.py
-│   ├── data_validator.py
-│   ├── preprocessor.py            # Stratified train/test split before scaler/encoder fit
-│   ├── train.py
-│   ├── evaluate.py                # Accuracy, Precision, Recall, F1, CV & Confusion Matrix
-│   ├── serializer.py
-│   ├── predictor.py
-│   └── artifacts/
+├── ml/                            # Standalone/secondary ML training & evaluation pipeline
 ├── frontend/
-│   ├── public/                    # Custom SVG/ICO/PNG favicons & 26 botanical crop SVGs
+│   ├── public/                    # Custom SVG/ICO/PNG favicons, 26 crop SVGs & 8 soil swatches
 │   └── src/
 │       ├── api/                   # Typed REST client
+│       ├── context/               # LanguageContext (en/kn) & ThemeContext (dark/light circular reveal)
 │       ├── components/            # WelcomeAnimation, Navbar, Footer, CropDetailModal
 │       ├── i18n/                  # English (en) & Kannada (kn) dictionaries
-│       └── pages/                 # Home, Recommend, Results, Compare, SoilHealth, Knowledge, Admin, Legal
+│       └── pages/                 # Home, Recommend (8-step), Results, Compare, SoilHealth, Knowledge, Admin, Legal
 ├── docs/                          # Detailed technical & architectural documentation
 ├── PRODUCT.md
 ├── DESIGN.md
@@ -146,14 +141,16 @@ Because SmartKrishi runs a Python FastAPI + Scikit-learn backend alongside the R
 
 ## API Endpoints Overview
 
-- `GET /api/health` — Database and ML model status
+- `GET /api/health` — Database and system readiness status
 - `GET /api/locations/states` — Supported states
 - `GET /api/locations/districts?state=Karnataka` — Districts mapped to agro-climatic zones
-- `GET /api/locations/taluks?state=Karnataka&district=...` — Taluks with zone & reference rainfall
+- `GET /api/locations/taluks?state=Karnataka&district=...` — Taluks with zone metadata, rainfall normals, soil groups, major crops, and institutional verification dates
+- `GET /api/weather/advisory?state=Karnataka&district=...&taluk=...` — Modular weather & climate intelligence (long-term zone normals separated from live weather & seasonal outlook)
 - `GET /api/crops` & `GET /api/crops/{crop_id}` — Crop catalog and full agronomic requirements
-- `POST /api/recommendations` & `GET /api/recommendations/{id}` — Hybrid crop recommendation generation & report retrieval
-- `POST /api/crops/compare` — Side-by-side comparison of up to 3 crops with economic assumptions
-- `POST /api/soil/analyze` — Agronomic pH & NPK soil health interpretation
+- `POST /api/recommendations` & `GET /api/recommendations/{id}` — Observation-based crop advisory generation & report retrieval
+- `POST /api/crops/compare` — Side-by-side comparison of up to 3 crops with illustrative economic assumptions
+- `POST /api/soil/observe` — Physical soil & field observation interpreter (color, texture, drainage, retention, depth, erosion)
+- `POST /api/soil/analyze` — Optional Soil Health Card pH & NPK reference interpreter
 - `GET /api/knowledge` & `GET /api/knowledge/{article_id}` — Categorized bilingual agricultural knowledge library
 - `POST /api/feedback` — Non-personal user feedback submission
 - `POST /api/admin/login`, `GET /api/admin/overview`, `PATCH /api/admin/crops/{id}`, `POST /api/admin/rules`, `POST /api/admin/knowledge`, `PATCH /api/admin/feedback/{id}` — Protected local-dev administration endpoints

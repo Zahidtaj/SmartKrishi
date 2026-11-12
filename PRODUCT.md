@@ -21,27 +21,35 @@ SmartKrishi is an agricultural decision-support platform that helps farmers answ
 
 ## Positioning
 
-Unlike opaque single-label ML demos, SmartKrishi uses a transparent hybrid engine: a Random Forest classifier trained on a documented public soil-climate dataset combined with configurable agronomic rules, hard constraint checks, transparent dimension scoring, and explicit limitation/insufficient-data warnings.
+Unlike opaque single-label ML demos or lab-only soil calculators, SmartKrishi leads with an **observation-based and location-aware agricultural decision-support engine** (`backend/rules/agronomic_rules.py` + `backend/services/soil_observation_service.py` + `backend/services/weather_service.py`) grounded in verified Karnataka NARP Agro-Climatic Zone profiles (`KA-Z1`..`KA-Z10`), paired with transparent constraint checks, honest uncertainty reporting, and institutional references.
 
 ## Operating Context
 
-- Desktop, laptop, tablet, and Android mobile web browsers used in English and Kannada (`en`, `kn`, extensible for `hi`).
-- Inputs distinguish measured soil test data (Soil Health Card values with test date) from approximate estimates and allow reduced-information mode when lab data is missing.
-- Local development prototype running FastAPI + SQLite locally; never claims real-time external weather APIs or scientifically validated profit guarantees when not connected.
+- Desktop, laptop, tablet, and Android mobile web browsers in English and Kannada (`en`, `kn`), supporting both Dark Mode (deep emerald/forest) and Light Mode with a smooth circular View Transitions reveal.
+- Farmers answer plain-language visual, physical feel, drainage, topography, water source, optional history, and seasonal planning questions across an 8-step guided flow — never required to enter laboratory N, P, K, or pH measurements (`"Not sure"` and `"Unknown"` supported explicitly).
+- Local and containerized prototype running FastAPI + SQLite; strictly separates long-term climate normals from optional live weather feeds and reports live weather as `unavailable` when disabled or unreachable rather than fabricating data.
 
 ## Capabilities and Constraints
 
-- Structured multi-section recommendation form: Location (State, District, linked Taluk, Village, Agro-climatic Zone), Soil (Type, pH, N, P, K, test source & date), Farming Conditions (Season, Irrigation, Water availability, Area, Method, Previous crop), Climate (Temperature, Humidity, Rainfall with measurement provenance).
-- Hybrid Recommendation Engine returning up to 3 ranked crops (or honest insufficient-data / conflict explanations) with dimension scores, reasons, limitations, duration, water needs, and cultivation guidance.
-- Up-to-3 Crop Comparison with agronomic metrics, Recharts visualizations where informative, and explicitly documented economic assumptions (clearly separating verified agronomic reference data from prototype illustrative economic ranges).
-- Soil Health Information module (pH & NPK reference ranges, testing method notes, Soil Health Card upload roadmap note).
-- Categorized Agricultural Knowledge Centre with traceable sources (ICAR, UAS Bengaluru/Dharwad, Raitha Mitra / Karnataka Dept of Agriculture, Soil Health Card portal) — zero invented schemes or helpline numbers.
-- Bilingual English and Kannada UI + explanations; Admin management module protected with real password hashing (`PBKDF2-HMAC-SHA256`) and signed local-dev tokens.
+- Guided **8-step observation-based advisory wizard**:
+  1. Location (State, District, linked Taluk, optional Village, auto-mapped NARP Agro-Climatic Zone)
+  2. Soil Appearance (8 verified educational SVG soil swatches + disclaimer that color does not establish fertility or pH)
+  3. Soil Texture (Sandy, Clayey, Loamy, Silty, Mixed, Not sure + expandable visual & ribbon feel guide)
+  4. Water Drainage & Moisture Retention (post-rain infiltration & dry-period retention observations)
+  5. Land Characteristics (slope/topography, approximate depth, visible stones, waterlogging, erosion)
+  6. Water Availability (source & seasonal reliability)
+  7. Farming History (clearly optional previous crop, past drought/flood, recurring pests, land area)
+  8. Season & Planning (season, intended sowing month, duration preference, main farming priority)
+- Transparent 7-stage Recommendation Engine returning up to 3 ranked crops with **Why this crop was recommended**, **Conditions to consider before cultivation**, **Information that is still missing**, `input_provenance`, Physical Soil & Land Synthesis, and a dedicated **Weather and Farming Advisory** card.
+- Up-to-3 Crop Comparison with agronomic metrics, Recharts visualizations, and explicitly documented illustrative economic assumptions.
+- **Soil Observation & Soil Health module** (`/soil-health`): physical field-observation interpreter (`POST /api/soil/observe`) upfront, plus a clearly optional, collapsible Soil Health Card laboratory pH/NPK reference calculator (`POST /api/soil/analyze`).
+- Categorized Agricultural Knowledge Centre with traceable institutional sources (`UAS Bengaluru`, `UAS Dharwad`, `ICAR`, `Karnataka Dept of Agriculture`, `Soil Health Card`) — zero invented schemes or helpline numbers.
+- Bilingual English and Kannada UI + explanations; Admin management module protected with `PBKDF2-HMAC-SHA256` password hashing and signed local-dev bearer tokens.
 
 ## Brand Commitments
 
 - Name: SmartKrishi
-- Visual direction specified by brief: dark-first interface, deep charcoal and forest-inspired dark surfaces, restrained natural green accents, warm neutral text, selective glassmorphism on navigation/overlays/selected panels, opaque reading surfaces, rectangular or subtly rounded buttons (no purple gradient pill buttons), and an original plant-growth SVG welcome animation (seed -> root -> stem -> leaves -> wordmark) with `prefers-reduced-motion` support.
+- Visual direction: Refined deep-emerald/forest analytics surfaces (`Dark Mode` default + `Light Mode` toggle with circular reveal), restrained botanical green accents, warm neutral inks, rectangular/soft-card surfaces with smooth animated transitions, and an original botanical SVG welcome intro (`WelcomeAnimation.tsx`, auto-completing without a "Skip intro" button and respecting `prefers-reduced-motion`).
 - Custom sprout/plant-inspired SVG & ICO favicon (`favicon.svg`, `favicon.ico`, PNG).
 - Zero fake testimonials, zero fake counters, zero AI-slop stock images, zero emoji interface icons (Lucide only).
 

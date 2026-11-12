@@ -1,829 +1,972 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, CloudRain, FlaskConical, MapPin, Tractor, Info } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Calendar,
+  Check,
+  CloudRain,
+  Compass,
+  Droplets,
+  HelpCircle,
+  History,
+  Info,
+  Loader2,
+  MapPin,
+  Mountain,
+  Sprout,
+} from "lucide-react";
 import { apiClient, ApiError } from "../api/client";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { useI18n } from "../i18n";
 import type {
   DistrictItem,
-  FarmingMethodOption,
-  IrrigationOption,
+  DrainageOption,
+  DurationPreferenceOption,
+  ErosionIssueOption,
+  FarmingPriorityOption,
+  LandTopographyOption,
+  MoistureRetentionOption,
   RecommendationPayload,
   SeasonOption,
-  SoilTypeOption,
+  SoilColorOption,
+  SoilDepthOption,
+  SoilTextureOption,
   TalukItem,
-  WaterAvailabilityOption,
+  VisibleStonesOption,
+  WaterloggingIssueOption,
+  WaterReliabilityOption,
+  WaterSourceOption,
 } from "../types";
 
-const SOIL_TYPES: SoilTypeOption[] = ["Red", "Black", "Alluvial", "Laterite", "Sandy", "Loamy", "Clay"];
+const TOTAL_STEPS = 8;
+
+const SOIL_COLORS: SoilColorOption[] = [
+  "red",
+  "reddish_brown",
+  "dark_black",
+  "brown",
+  "yellowish",
+  "grey",
+  "sandy_pale",
+  "mixed_uncertain",
+];
+
+const SOIL_TEXTURES: SoilTextureOption[] = ["sandy", "clayey", "loamy", "silty", "mixed", "not_sure"];
+const DRAINAGES: DrainageOption[] = ["very_quickly", "moderately", "remains_hours", "remains_days", "not_sure"];
+const MOISTURES: MoistureRetentionOption[] = ["dries_quickly", "short_period", "several_days", "not_sure"];
+const TOPOGRAPHIES: LandTopographyOption[] = ["flat", "slightly_sloping", "steep_hilly", "low_lying", "rocky_stony"];
+const DEPTHS: SoilDepthOption[] = ["shallow", "medium", "deep", "unknown"];
+const STONES: VisibleStonesOption[] = ["none_few", "moderate", "many_stony", "not_sure"];
+const WATERLOGS: WaterloggingIssueOption[] = ["none", "occasional", "frequent", "not_sure"];
+const EROSIONS: ErosionIssueOption[] = ["none", "mild", "severe", "not_sure"];
+const WATER_SOURCES: WaterSourceOption[] = [
+  "rainfed",
+  "borewell",
+  "open_well",
+  "canal",
+  "pond_reservoir",
+  "drip_irrigation",
+  "multiple_sources",
+];
+const WATER_RELIABILITIES: WaterReliabilityOption[] = [
+  "throughout_season",
+  "certain_months",
+  "limited",
+  "uncertain",
+];
 const SEASONS: SeasonOption[] = ["Kharif", "Rabi", "Zaid", "Perennial"];
-const IRRIGATION_TYPES: IrrigationOption[] = [
-  "Rainfed",
-  "Borewell",
-  "Canal",
-  "Drip",
-  "Sprinkler",
-  "Tank / Open Well",
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
-const WATER_LEVELS: WaterAvailabilityOption[] = [
-  "Rainfed",
-  "Limited irrigation",
-  "Moderate irrigation",
-  "Assured irrigation",
-];
-const FARMING_METHODS: FarmingMethodOption[] = [
-  "Integrated (INM/IPM)",
-  "Conventional",
-  "Organic / Natural",
-  "Mixed / Multi-crop",
+const DURATIONS: DurationPreferenceOption[] = ["short", "long", "flexible"];
+const PRIORITIES: FarmingPriorityOption[] = [
+  "low_water",
+  "short_duration",
+  "land_suitability",
+  "household_food",
+  "commercial",
 ];
 
 export function RecommendPage() {
   const { lang, t } = useI18n();
   const navigate = useNavigate();
 
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [stepError, setStepError] = useState<string | null>(null);
 
-  // Location state
+  // Location cascade
   const [states, setStates] = useState<string[]>(["Karnataka"]);
-  const [selectedState, setSelectedState] = useState("Karnataka");
+  const [stateName, setStateName] = useState("Karnataka");
   const [districts, setDistricts] = useState<DistrictItem[]>([]);
-  const [selectedDistrict, setSelectedDistrict] = useState("");
+  const [district, setDistrict] = useState("");
   const [taluks, setTaluks] = useState<TalukItem[]>([]);
-  const [selectedTaluk, setSelectedTaluk] = useState("");
+  const [taluk, setTaluk] = useState("");
   const [village, setVillage] = useState("");
 
-  // Soil state
-  const [soilType, setSoilType] = useState<SoilTypeOption>("Red");
-  const [soilDataAvailable, setSoilDataAvailable] = useState(true);
-  const [soilSource, setSoilSource] = useState<"soil_test" | "estimate">("estimate");
-  const [soilTestDate, setSoilTestDate] = useState("");
-  const [ph, setPh] = useState("6.5");
-  const [nitrogen, setNitrogen] = useState("55");
-  const [phosphorus, setPhosphorus] = useState("38");
-  const [potassium, setPotassium] = useState("35");
+  // Step 2 & 3: Soil Appearance & Texture
+  const [soilColor, setSoilColor] = useState<SoilColorOption>("red");
+  const [soilTexture, setSoilTexture] = useState<SoilTextureOption>("loamy");
+  const [showTextureGuide, setShowTextureGuide] = useState(false);
 
-  // Farming state
-  const [season, setSeason] = useState<SeasonOption>("Kharif");
-  const [irrigationType, setIrrigationType] = useState<IrrigationOption>("Rainfed");
-  const [waterAvailability, setWaterAvailability] = useState<WaterAvailabilityOption>("Rainfed");
-  const [landArea, setLandArea] = useState("2");
-  const [farmingMethod, setFarmingMethod] = useState<FarmingMethodOption>("Integrated (INM/IPM)");
+  // Step 4: Water Drainage & Retention
+  const [drainageAfterRain, setDrainageAfterRain] = useState<DrainageOption>("moderately");
+  const [moistureRetention, setMoistureRetention] = useState<MoistureRetentionOption>("short_period");
+
+  // Step 5: Land Characteristics
+  const [landTopography, setLandTopography] = useState<LandTopographyOption>("flat");
+  const [soilDepth, setSoilDepth] = useState<SoilDepthOption>("medium");
+  const [visibleStones, setVisibleStones] = useState<VisibleStonesOption>("none_few");
+  const [waterloggingIssue, setWaterloggingIssue] = useState<WaterloggingIssueOption>("none");
+  const [erosionIssue, setErosionIssue] = useState<ErosionIssueOption>("none");
+
+  // Step 6: Water Availability
+  const [waterSource, setWaterSource] = useState<WaterSourceOption>("rainfed");
+  const [waterReliability, setWaterReliability] = useState<WaterReliabilityOption>("certain_months");
+
+  // Step 7: Optional Farming History
   const [previousCrop, setPreviousCrop] = useState("");
+  const [previousCropSuccess, setPreviousCropSuccess] = useState<"" | "yes" | "partial" | "no" | "not_sure">("");
+  const [droughtHistory, setDroughtHistory] = useState<"" | "yes" | "no" | "uncertain">("");
+  const [floodHistory, setFloodHistory] = useState<"" | "yes" | "no" | "uncertain">("");
+  const [pestHistory, setPestHistory] = useState("");
+  const [landAreaAcres, setLandAreaAcres] = useState("");
 
-  // Climate state
-  const [temperature, setTemperature] = useState("26");
-  const [humidity, setHumidity] = useState("68");
-  const [rainfall, setRainfall] = useState("740");
-  const [climateSource, setClimateSource] = useState<"measured" | "estimate" | "reference">("estimate");
+  // Step 8: Season & Planning
+  const [season, setSeason] = useState<SeasonOption>("Kharif");
+  const [intendedMonth, setIntendedMonth] = useState("June");
+  const [durationPreference, setDurationPreference] = useState<DurationPreferenceOption>("flexible");
+  const [farmingPriority, setFarmingPriority] = useState<FarmingPriorityOption>("land_suitability");
 
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [loadingLocations, setLoadingLocations] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-
-  // Load states & districts
   useEffect(() => {
     apiClient
       .getStates()
       .then((res) => {
         if (res.states.length > 0) {
           setStates(res.states);
-          setSelectedState(res.states[0]);
+          setStateName(res.states[0]);
         }
       })
-      .catch(() => {
-        // Keep Karnataka default if API call fails transiently; submit will report error clearly
-      });
+      .catch(() => setStates(["Karnataka"]));
   }, []);
 
   useEffect(() => {
-    if (!selectedState) return;
-    setLoadingLocations(true);
+    if (!stateName) return;
     apiClient
-      .getDistricts(selectedState)
+      .getDistricts(stateName)
       .then((res) => {
         setDistricts(res.districts);
         if (res.districts.length > 0) {
-          const defaultDist =
-            res.districts.find((d) => d.district === "Bengaluru Rural")?.district || res.districts[0].district;
-          setSelectedDistrict((prev) =>
-            res.districts.some((d) => d.district === prev) ? prev : defaultDist
-          );
-        } else {
-          setSelectedDistrict("");
+          const preferred = res.districts.find((d) => d.district === "Tumakuru") || res.districts[0];
+          setDistrict(preferred.district);
         }
       })
-      .catch((err) => {
-        setSubmitError(err instanceof Error ? err.message : "Could not load districts.");
-      })
-      .finally(() => setLoadingLocations(false));
-  }, [selectedState]);
+      .catch((err) => setApiError(err instanceof Error ? err.message : "Could not load districts."));
+  }, [stateName]);
 
   useEffect(() => {
-    if (!selectedState || !selectedDistrict) {
-      setTaluks([]);
-      setSelectedTaluk("");
-      return;
-    }
+    if (!stateName || !district) return;
     apiClient
-      .getTaluks(selectedState, selectedDistrict)
+      .getTaluks(stateName, district)
       .then((res) => {
         setTaluks(res.taluks);
         if (res.taluks.length > 0) {
-          setSelectedTaluk((prev) =>
-            res.taluks.some((tk) => tk.taluk === prev) ? prev : res.taluks[0].taluk
-          );
-        } else {
-          setSelectedTaluk("");
+          setTaluk(res.taluks[0].taluk);
         }
       })
-      .catch(() => {
-        setTaluks([]);
-        setSelectedTaluk("");
-      });
-  }, [selectedState, selectedDistrict]);
+      .catch((err) => setApiError(err instanceof Error ? err.message : "Could not load taluks."));
+  }, [stateName, district]);
 
-  const activeTaluk = taluks.find((item) => item.taluk === selectedTaluk);
+  const selectedTalukObj = taluks.find((item) => item.taluk === taluk) || null;
 
-  const validateStep = (stepIndex: number): boolean => {
-    const errors: Record<string, string> = {};
-
-    if (stepIndex === 0) {
-      if (!selectedState) errors.state = "Please select a state.";
-      if (!selectedDistrict) errors.district = "Please select a district.";
-      if (!selectedTaluk) errors.taluk = "Please select a taluk.";
+  const validateCurrentStep = (): boolean => {
+    setStepError(null);
+    if (step === 1 && (!district || !taluk)) {
+      setStepError(lang === "kn" ? "ದಯವಿಟ್ಟು ಜಿಲ್ಲೆ ಮತ್ತು ತಾಲೂಕು ಆಯ್ಕೆಮಾಡಿ." : "Please select both District and Taluk.");
+      return false;
     }
-
-    if (stepIndex === 1 && soilDataAvailable) {
-      if (ph.trim() !== "") {
-        const val = Number(ph);
-        if (Number.isNaN(val) || val < 0 || val > 14) errors.ph = "Soil pH must be between 0 and 14.";
-      }
-      if (nitrogen.trim() !== "") {
-        const val = Number(nitrogen);
-        if (Number.isNaN(val) || val < 0 || val > 500) errors.nitrogen = "Nitrogen must be between 0 and 500 kg/ha.";
-      }
-      if (phosphorus.trim() !== "") {
-        const val = Number(phosphorus);
-        if (Number.isNaN(val) || val < 0 || val > 500) errors.phosphorus = "Phosphorus must be between 0 and 500 kg/ha.";
-      }
-      if (potassium.trim() !== "") {
-        const val = Number(potassium);
-        if (Number.isNaN(val) || val < 0 || val > 600) errors.potassium = "Potassium must be between 0 and 600 kg/ha.";
-      }
-    }
-
-    if (stepIndex === 2) {
-      const area = Number(landArea);
+    if (step === 7 && landAreaAcres.trim() !== "") {
+      const area = Number(landAreaAcres);
       if (Number.isNaN(area) || area <= 0 || area > 1000) {
-        errors.landArea = "Land area must be greater than 0 and up to 1000 acres.";
+        setStepError(lang === "kn" ? "ವಿಸ್ತೀರ್ಣ 0.1 ರಿಂದ 1000 ಎಕರೆ ನಡುವೆ ಇರಬೇಕು." : "Land size must be between 0.1 and 1000 acres.");
+        return false;
       }
     }
-
-    if (stepIndex === 3) {
-      if (temperature.trim() !== "") {
-        const val = Number(temperature);
-        if (Number.isNaN(val) || val < -5 || val > 60) errors.temperature = "Temperature must be between -5°C and 60°C.";
-      }
-      if (humidity.trim() !== "") {
-        const val = Number(humidity);
-        if (Number.isNaN(val) || val < 0 || val > 100) errors.humidity = "Humidity must be between 0% and 100%.";
-      }
-      if (rainfall.trim() !== "") {
-        const val = Number(rainfall);
-        if (Number.isNaN(val) || val < 0 || val > 5000) errors.rainfall = "Rainfall must be between 0 and 5000 mm.";
-      }
-    }
-
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
+    return true;
   };
 
   const handleNext = () => {
-    if (validateStep(step)) {
-      setStep((s) => Math.min(3, s + 1));
-    }
+    if (!validateCurrentStep()) return;
+    setStep((s) => Math.min(TOTAL_STEPS, s + 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleBack = () => {
+    setStepError(null);
+    setStep((s) => Math.max(1, s - 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateStep(3)) return;
+    if (!validateCurrentStep()) return;
 
     setSubmitting(true);
-    setSubmitError(null);
-
-    const parseOptNum = (raw: string): number | null => {
-      const trimmed = raw.trim();
-      return trimmed === "" ? null : Number(trimmed);
-    };
+    setApiError(null);
 
     const payload: RecommendationPayload = {
-      state: selectedState,
-      district: selectedDistrict,
-      taluk: selectedTaluk,
+      state: stateName,
+      district,
+      taluk,
       village: village.trim() || null,
-      agro_climatic_zone: activeTaluk?.agro_climatic_zone || null,
-      soil_type: soilType,
-      soil_data_available: soilDataAvailable,
-      soil_measurement_source: soilDataAvailable ? soilSource : "unavailable",
-      soil_test_date: soilDataAvailable && soilTestDate ? soilTestDate : null,
-      ph: soilDataAvailable ? parseOptNum(ph) : null,
-      nitrogen: soilDataAvailable ? parseOptNum(nitrogen) : null,
-      phosphorus: soilDataAvailable ? parseOptNum(phosphorus) : null,
-      potassium: soilDataAvailable ? parseOptNum(potassium) : null,
-      season,
-      irrigation_type: irrigationType,
-      water_availability: waterAvailability,
-      land_area_acres: Number(landArea),
-      farming_method: farmingMethod,
+      soil_color: soilColor,
+      soil_texture: soilTexture,
+      drainage_after_rain: drainageAfterRain,
+      moisture_retention: moistureRetention,
+      land_topography: landTopography,
+      soil_depth: soilDepth,
+      visible_stones: visibleStones,
+      waterlogging_issue: waterloggingIssue,
+      erosion_issue: erosionIssue,
+      water_source: waterSource,
+      water_reliability: waterReliability,
       previous_crop: previousCrop.trim() || null,
-      temperature: parseOptNum(temperature),
-      humidity: parseOptNum(humidity),
-      rainfall: parseOptNum(rainfall),
-      climate_source: climateSource,
+      previous_crop_success: previousCropSuccess || null,
+      drought_history: droughtHistory || null,
+      flood_history: floodHistory || null,
+      pest_disease_history: pestHistory.trim() || null,
+      land_area_acres: landAreaAcres.trim() ? Number(landAreaAcres) : null,
+      season,
+      intended_sowing_month: intendedMonth || null,
+      duration_preference: durationPreference,
+      farming_priority: farmingPriority,
       language: lang,
     };
 
     try {
       const result = await apiClient.createRecommendation(payload);
-      sessionStorage.setItem("smartkrishi_latest_rec", JSON.stringify(result));
-      navigate(`/results/${result.recommendation_id}`, { state: { result } });
+      navigate(`/results/${result.recommendation_id}`, { state: { recommendation: result } });
     } catch (err) {
       if (err instanceof ApiError) {
-        setSubmitError(err.message);
-        if (err.fieldErrors) setFieldErrors(err.fieldErrors);
+        setApiError(err.message);
       } else {
-        setSubmitError("Unable to reach the recommendation service. Check that the backend server is running.");
+        setApiError("Unable to reach the advisory server. Please check backend connectivity.");
       }
     } finally {
       setSubmitting(false);
     }
   };
 
-  const steps = [
-    { label: t.form.stepLocation, icon: MapPin },
-    { label: t.form.stepSoil, icon: FlaskConical },
-    { label: t.form.stepFarming, icon: Tractor },
-    { label: t.form.stepClimate, icon: CloudRain },
-  ];
+  const stepMeta = [
+    { key: "location", icon: MapPin, copy: t.wizard.steps.location },
+    { key: "soilColor", icon: Compass, copy: t.wizard.steps.soilColor },
+    { key: "soilTexture", icon: Sprout, copy: t.wizard.steps.soilTexture },
+    { key: "drainage", icon: CloudRain, copy: t.wizard.steps.drainage },
+    { key: "land", icon: Mountain, copy: t.wizard.steps.land },
+    { key: "water", icon: Droplets, copy: t.wizard.steps.water },
+    { key: "history", icon: History, copy: t.wizard.steps.history },
+    { key: "season", icon: Calendar, copy: t.wizard.steps.season },
+  ][step - 1];
+
+  const StepIcon = stepMeta.icon;
+  const pct = Math.round((step / TOTAL_STEPS) * 100);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{t.form.pageTitle}</h1>
-        <p className="mt-2 text-sm text-secondary sm:text-base">{t.form.pageSubtitle}</p>
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">{t.wizard.pageTitle}</h1>
+        <p className="mt-2 text-sm text-secondary sm:text-base">{t.wizard.pageSubtitle}</p>
       </div>
 
-      {/* Stepper indicator */}
-      <nav aria-label="Recommendation form sections" className="mb-8 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-        {steps.map((item, idx) => {
-          const Icon = item.icon;
-          const isCurrent = idx === step;
-          const isDone = idx < step;
-          return (
-            <button
-              key={item.label}
-              type="button"
-              onClick={() => {
-                if (idx <= step || validateStep(step)) setStep(idx);
-              }}
-              aria-current={isCurrent ? "step" : undefined}
-              className={`flex items-center gap-2.5 rounded-lg border p-3 text-left text-sm transition-colors min-h-[48px] ${
-                isCurrent
-                  ? "border-accent bg-elevated text-ink font-semibold"
-                  : isDone
-                  ? "border-accent/40 bg-surface text-accent"
-                  : "border-white/10 bg-surface text-secondary hover:bg-elevated/60"
-              }`}
-            >
-              {isDone ? (
-                <Check className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
-              ) : (
-                <Icon className={`h-4 w-4 shrink-0 ${isCurrent ? "text-accent" : "text-muted"}`} aria-hidden="true" />
-              )}
-              <span className="text-xs sm:text-sm leading-snug">{item.label}</span>
-            </button>
-          );
-        })}
-      </nav>
+      {/* Smooth 8-Step Progress Header */}
+      <div className="mb-6 rounded-xl border border-ink/10 bg-surface p-4">
+        <div className="flex items-center justify-between text-xs font-medium text-secondary">
+          <span className="flex items-center gap-2 text-ink">
+            <StepIcon className="h-4 w-4 text-accent" aria-hidden="true" />
+            {t.wizard.stepOf.replace("{current}", String(step)).replace("{total}", String(TOTAL_STEPS))} —{" "}
+            <strong className="font-semibold text-accent">{stepMeta.copy.title}</strong>
+          </span>
+          <span className="font-mono tabular-nums text-muted">{pct}%</span>
+        </div>
+        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-ink/10">
+          <div
+            className="h-full rounded-full bg-accent transition-all duration-300 ease-out"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
 
-      {submitError && (
-        <div className="mb-6">
-          <ErrorAlert title="Submission Error" message={submitError} />
+      {apiError && (
+        <div className="mb-5">
+          <ErrorAlert message={apiError} />
+        </div>
+      )}
+      {stepError && (
+        <div className="mb-5">
+          <ErrorAlert message={stepError} />
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="sk-surface-card rounded-xl p-6 sm:p-8 space-y-6" noValidate>
-        {/* SECTION A: LOCATION */}
-        {step === 0 && (
-          <div className="space-y-5">
-            <h2 className="text-lg font-semibold text-ink">{t.form.stepLocation}</h2>
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div>
-                <label htmlFor="state" className="block text-sm font-medium text-secondary mb-1.5">
-                  {t.form.state}
-                </label>
-                <select
-                  id="state"
-                  className="sk-input"
-                  value={selectedState}
-                  onChange={(e) => setSelectedState(e.target.value)}
-                  aria-invalid={Boolean(fieldErrors.state)}
-                >
-                  {states.map((st) => (
-                    <option key={st} value={st}>
-                      {st}
-                    </option>
-                  ))}
-                </select>
-                {fieldErrors.state && <p className="mt-1 text-xs text-danger">{fieldErrors.state}</p>}
-              </div>
-
-              <div>
-                <label htmlFor="district" className="block text-sm font-medium text-secondary mb-1.5">
-                  {t.form.district}
-                </label>
-                <select
-                  id="district"
-                  className="sk-input"
-                  value={selectedDistrict}
-                  disabled={loadingLocations || districts.length === 0}
-                  onChange={(e) => setSelectedDistrict(e.target.value)}
-                  aria-invalid={Boolean(fieldErrors.district)}
-                  aria-describedby={fieldErrors.district ? "district-error" : undefined}
-                >
-                  {districts.length === 0 && <option value="">{t.form.selectOption}</option>}
-                  {districts.map((d) => (
-                    <option key={d.district} value={d.district}>
-                      {d.district}
-                    </option>
-                  ))}
-                </select>
-                {fieldErrors.district && (
-                  <p id="district-error" className="mt-1 text-xs text-danger">
-                    {fieldErrors.district}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="taluk" className="block text-sm font-medium text-secondary mb-1.5">
-                  {t.form.taluk}
-                </label>
-                <select
-                  id="taluk"
-                  className="sk-input"
-                  value={selectedTaluk}
-                  disabled={taluks.length === 0}
-                  onChange={(e) => setSelectedTaluk(e.target.value)}
-                  aria-invalid={Boolean(fieldErrors.taluk)}
-                  aria-describedby={fieldErrors.taluk ? "taluk-error" : undefined}
-                >
-                  {taluks.length === 0 && <option value="">{t.form.selectOption}</option>}
-                  {taluks.map((tk) => (
-                    <option key={tk.id} value={tk.taluk}>
-                      {tk.taluk}
-                    </option>
-                  ))}
-                </select>
-                {fieldErrors.taluk && (
-                  <p id="taluk-error" className="mt-1 text-xs text-danger">
-                    {fieldErrors.taluk}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="village" className="block text-sm font-medium text-secondary mb-1.5">
-                  {t.form.village}
-                </label>
-                <input
-                  id="village"
-                  type="text"
-                  className="sk-input"
-                  value={village}
-                  onChange={(e) => setVillage(e.target.value)}
-                  placeholder="Optional"
-                />
-              </div>
-            </div>
-
-            {activeTaluk && (
-              <div className="rounded-lg border border-accent/25 bg-canvas/80 p-4 text-sm space-y-1">
-                <p className="text-secondary">
-                  <span className="font-medium text-ink">{t.form.agroZone}:</span>{" "}
-                  <span className="text-accent font-medium">
-                    {activeTaluk.agro_climatic_zone} ({activeTaluk.zone_code})
-                  </span>
-                </p>
-                {activeTaluk.normal_annual_rainfall_mm && (
-                  <p className="text-xs text-muted font-mono tabular-nums">
-                    {t.form.talukRefHint}: {activeTaluk.normal_annual_rainfall_mm} mm/year · Dominant soils:{" "}
-                    {activeTaluk.dominant_soil_types.join(", ")}
-                  </p>
-                )}
-              </div>
-            )}
+      <form onSubmit={handleSubmit} noValidate className="sk-surface-card rounded-2xl p-6 sm:p-8">
+        <div key={step} className="sk-step-enter space-y-6">
+          <div className="border-b border-ink/10 pb-4">
+            <h2 className="text-lg font-semibold text-ink sm:text-xl">{stepMeta.copy.title}</h2>
+            <p className="mt-1 text-sm text-secondary">{stepMeta.copy.subtitle}</p>
           </div>
-        )}
 
-        {/* SECTION B: SOIL INFORMATION */}
-        {step === 1 && (
-          <div className="space-y-5">
-            <h2 className="text-lg font-semibold text-ink">{t.form.stepSoil}</h2>
+          {/* STEP 1: LOCATION */}
+          {step === 1 && (
+            <div className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="state" className="block text-sm font-medium text-ink">
+                    {t.wizard.fields.state}
+                  </label>
+                  <select
+                    id="state"
+                    value={stateName}
+                    onChange={(e) => setStateName(e.target.value)}
+                    className="sk-input mt-1.5"
+                  >
+                    {states.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            <div className="grid gap-5 sm:grid-cols-2">
-              <div>
-                <label htmlFor="soilType" className="block text-sm font-medium text-secondary mb-1.5">
-                  {t.form.soilType}
-                </label>
-                <select
-                  id="soilType"
-                  className="sk-input"
-                  value={soilType}
-                  onChange={(e) => setSoilType(e.target.value as SoilTypeOption)}
-                >
-                  {SOIL_TYPES.map((st) => (
-                    <option key={st} value={st}>
-                      {st} soil
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <div>
+                  <label htmlFor="district" className="block text-sm font-medium text-ink">
+                    {t.wizard.fields.district}
+                  </label>
+                  <select
+                    id="district"
+                    value={district}
+                    onChange={(e) => setDistrict(e.target.value)}
+                    className="sk-input mt-1.5"
+                  >
+                    {districts.map((d) => (
+                      <option key={d.district} value={d.district}>
+                        {d.district}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="flex items-end">
-                <label className="flex items-center gap-3 rounded-lg border border-white/15 bg-canvas/70 px-4 py-2.5 min-h-[44px] w-full cursor-pointer">
+                <div>
+                  <label htmlFor="taluk" className="block text-sm font-medium text-ink">
+                    {t.wizard.fields.taluk}
+                  </label>
+                  <select
+                    id="taluk"
+                    value={taluk}
+                    onChange={(e) => setTaluk(e.target.value)}
+                    className="sk-input mt-1.5"
+                  >
+                    {taluks.map((tl) => (
+                      <option key={tl.id} value={tl.taluk}>
+                        {tl.taluk}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="village" className="block text-sm font-medium text-ink">
+                    {t.wizard.fields.village}
+                  </label>
                   <input
-                    type="checkbox"
-                    checked={soilDataAvailable}
-                    onChange={(e) => setSoilDataAvailable(e.target.checked)}
-                    className="h-4 w-4 accent-accent"
+                    id="village"
+                    type="text"
+                    value={village}
+                    onChange={(e) => setVillage(e.target.value)}
+                    placeholder={lang === "kn" ? "ಉದಾ: ಹೆಬ್ಬೂರು" : "e.g., Hebbur"}
+                    className="sk-input mt-1.5"
                   />
-                  <span className="text-sm text-ink">{t.form.soilDataToggle}</span>
-                </label>
+                </div>
+              </div>
+
+              {selectedTalukObj && (
+                <div className="rounded-xl border border-accent/30 bg-accent/10 p-5 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-xs font-medium text-muted">{t.wizard.fields.agroZone}</p>
+                      <p className="text-base font-semibold text-ink">
+                        {selectedTalukObj.agro_climatic_zone}{" "}
+                        <span className="font-mono text-xs text-accent">({selectedTalukObj.zone_code})</span>
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted">{t.wizard.fields.zoneRefHint}</p>
+                      <p className="font-mono text-sm font-semibold text-ink tabular-nums">
+                        {selectedTalukObj.normal_annual_rainfall_mm ?? "—"} mm / yr
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-xs text-secondary">{selectedTalukObj.typical_rainfall_pattern}</p>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    <span className="text-xs font-medium text-ink mr-1">{t.wizard.fields.majorCropsLabel}:</span>
+                    {selectedTalukObj.major_crops.map((c) => (
+                      <span
+                        key={c}
+                        className="rounded-md border border-ink/15 bg-surface px-2 py-0.5 text-xs text-secondary"
+                      >
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-muted">
+                    {selectedTalukObj.data_source} · Updated {selectedTalukObj.last_updated}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* STEP 2: SOIL APPEARANCE */}
+          {step === 2 && (
+            <div className="space-y-5">
+              <p className="text-base font-medium text-ink">{t.wizard.steps.soilColor.question}</p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {SOIL_COLORS.map((key) => {
+                  const selected = soilColor === key;
+                  const copy = t.wizard.colors[key];
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setSoilColor(key)}
+                      aria-pressed={selected}
+                      className={`sk-choice-card flex flex-col rounded-xl p-3 text-left ${
+                        selected ? "border-accent ring-2 ring-accent/40 bg-elevated" : ""
+                      }`}
+                    >
+                      <img
+                        src={`/soils/${key}.svg`}
+                        alt={copy.label}
+                        className="h-20 w-full rounded-lg object-cover border border-ink/10"
+                      />
+                      <div className="mt-2.5 flex items-center justify-between gap-1">
+                        <span className="text-sm font-semibold text-ink">{copy.label}</span>
+                        {selected && <Check className="h-4 w-4 text-accent shrink-0" />}
+                      </div>
+                      {copy.desc && <span className="mt-0.5 text-xs text-secondary">{copy.desc}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex items-start gap-2.5 rounded-lg border border-warning/35 bg-warning/10 p-3.5 text-xs text-ink">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
+                <span>{t.wizard.steps.soilColor.disclaimer}</span>
               </div>
             </div>
+          )}
 
-            {!soilDataAvailable ? (
-              <div className="flex items-start gap-3 rounded-lg border border-warning/35 bg-warning/10 p-4 text-sm text-secondary">
-                <Info className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
-                <p>{t.form.soilUnavailableNote}</p>
+          {/* STEP 3: SOIL TEXTURE */}
+          {step === 3 && (
+            <div className="space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-base font-medium text-ink">{t.wizard.steps.soilTexture.question}</p>
+                <button
+                  type="button"
+                  onClick={() => setShowTextureGuide((prev) => !prev)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-accent/35 bg-accent/10 px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent/20 transition-colors"
+                >
+                  <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>{t.wizard.steps.soilTexture.guideTitle}</span>
+                </button>
               </div>
-            ) : (
-              <>
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="soilSource" className="block text-sm font-medium text-secondary mb-1.5">
-                      {t.form.soilSource}
-                    </label>
-                    <select
-                      id="soilSource"
-                      className="sk-input"
-                      value={soilSource}
-                      onChange={(e) => setSoilSource(e.target.value as "soil_test" | "estimate")}
+
+              {showTextureGuide && (
+                <div className="rounded-xl border border-info/35 bg-info/10 p-4 text-xs leading-relaxed text-ink space-y-2">
+                  <p className="font-semibold">{t.wizard.steps.soilTexture.guideTitle}</p>
+                  <p className="text-secondary">{t.wizard.steps.soilTexture.guideBody}</p>
+                </div>
+              )}
+
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {SOIL_TEXTURES.map((key) => {
+                  const selected = soilTexture === key;
+                  const copy = t.wizard.textures[key];
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setSoilTexture(key)}
+                      aria-pressed={selected}
+                      className={`sk-choice-card flex flex-col items-start rounded-xl p-4 text-left ${
+                        selected ? "border-accent ring-2 ring-accent/40 bg-elevated" : ""
+                      }`}
                     >
-                      <option value="soil_test">{t.form.soilSourceTest}</option>
-                      <option value="estimate">{t.form.soilSourceEstimate}</option>
-                    </select>
-                  </div>
+                      <div className="flex w-full items-center justify-between">
+                        <span className="text-sm font-semibold text-ink">{copy.label}</span>
+                        {selected && <Check className="h-4 w-4 text-accent" />}
+                      </div>
+                      {copy.desc && <span className="mt-1.5 text-xs text-secondary">{copy.desc}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-                  <div>
-                    <label htmlFor="soilTestDate" className="block text-sm font-medium text-secondary mb-1.5">
-                      {t.form.soilTestDate}
-                    </label>
-                    <input
-                      id="soilTestDate"
-                      type="date"
-                      className="sk-input"
-                      value={soilTestDate}
-                      onChange={(e) => setSoilTestDate(e.target.value)}
-                    />
-                  </div>
+          {/* STEP 4: WATER DRAINAGE & MOISTURE RETENTION */}
+          {step === 4 && (
+            <div className="space-y-6">
+              <div>
+                <p className="text-base font-medium text-ink mb-3">{t.wizard.steps.drainage.qRain}</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {DRAINAGES.map((key) => {
+                    const selected = drainageAfterRain === key;
+                    const copy = t.wizard.drainages[key];
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setDrainageAfterRain(key)}
+                        aria-pressed={selected}
+                        className={`sk-choice-card rounded-xl p-4 text-left ${
+                          selected ? "border-accent ring-2 ring-accent/40 bg-elevated" : ""
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-ink">{copy.label}</span>
+                          {selected && <Check className="h-4 w-4 text-accent shrink-0" />}
+                        </div>
+                        {copy.desc && <p className="mt-1 text-xs text-secondary">{copy.desc}</p>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-base font-medium text-ink mb-3">{t.wizard.steps.drainage.qMoisture}</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {MOISTURES.map((key) => {
+                    const selected = moistureRetention === key;
+                    const copy = t.wizard.moistures[key];
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setMoistureRetention(key)}
+                        aria-pressed={selected}
+                        className={`sk-choice-card rounded-xl p-4 text-left ${
+                          selected ? "border-accent ring-2 ring-accent/40 bg-elevated" : ""
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-ink">{copy.label}</span>
+                          {selected && <Check className="h-4 w-4 text-accent shrink-0" />}
+                        </div>
+                        {copy.desc && <p className="mt-1 text-xs text-secondary">{copy.desc}</p>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 5: LAND CHARACTERISTICS */}
+          {step === 5 && (
+            <div className="space-y-6">
+              <div>
+                <p className="text-sm font-semibold text-ink mb-2.5">{t.wizard.steps.land.qTopo}</p>
+                <div className="grid gap-2.5 sm:grid-cols-3">
+                  {TOPOGRAPHIES.map((key) => {
+                    const selected = landTopography === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setLandTopography(key)}
+                        aria-pressed={selected}
+                        className={`sk-choice-card flex items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-medium ${
+                          selected ? "border-accent ring-2 ring-accent/40 bg-elevated text-ink" : "text-secondary"
+                        }`}
+                      >
+                        <span>{t.wizard.topographies[key].label}</span>
+                        {selected && <Check className="h-4 w-4 text-accent shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="soilDepth" className="block text-sm font-medium text-ink">
+                    {t.wizard.steps.land.qDepth}
+                  </label>
+                  <select
+                    id="soilDepth"
+                    value={soilDepth}
+                    onChange={(e) => setSoilDepth(e.target.value as SoilDepthOption)}
+                    className="sk-input mt-1.5"
+                  >
+                    {DEPTHS.map((d) => (
+                      <option key={d} value={d}>
+                        {t.wizard.depths[d].label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="ph" className="block text-sm font-medium text-secondary mb-1.5">
-                      {t.form.ph}
-                    </label>
-                    <input
-                      id="ph"
-                      type="number"
-                      step="0.1"
-                      className="sk-input font-mono tabular-nums"
-                      value={ph}
-                      onChange={(e) => setPh(e.target.value)}
-                      aria-invalid={Boolean(fieldErrors.ph)}
-                      aria-describedby={fieldErrors.ph ? "ph-error" : undefined}
-                    />
-                    {fieldErrors.ph && (
-                      <p id="ph-error" className="mt-1 text-xs text-danger">
-                        {fieldErrors.ph}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="nitrogen" className="block text-sm font-medium text-secondary mb-1.5">
-                      {t.form.nitrogen}
-                    </label>
-                    <input
-                      id="nitrogen"
-                      type="number"
-                      step="1"
-                      className="sk-input font-mono tabular-nums"
-                      value={nitrogen}
-                      onChange={(e) => setNitrogen(e.target.value)}
-                      aria-invalid={Boolean(fieldErrors.nitrogen)}
-                      aria-describedby={fieldErrors.nitrogen ? "nitrogen-error" : undefined}
-                    />
-                    {fieldErrors.nitrogen && (
-                      <p id="nitrogen-error" className="mt-1 text-xs text-danger">
-                        {fieldErrors.nitrogen}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="phosphorus" className="block text-sm font-medium text-secondary mb-1.5">
-                      {t.form.phosphorus}
-                    </label>
-                    <input
-                      id="phosphorus"
-                      type="number"
-                      step="1"
-                      className="sk-input font-mono tabular-nums"
-                      value={phosphorus}
-                      onChange={(e) => setPhosphorus(e.target.value)}
-                      aria-invalid={Boolean(fieldErrors.phosphorus)}
-                      aria-describedby={fieldErrors.phosphorus ? "phosphorus-error" : undefined}
-                    />
-                    {fieldErrors.phosphorus && (
-                      <p id="phosphorus-error" className="mt-1 text-xs text-danger">
-                        {fieldErrors.phosphorus}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label htmlFor="potassium" className="block text-sm font-medium text-secondary mb-1.5">
-                      {t.form.potassium}
-                    </label>
-                    <input
-                      id="potassium"
-                      type="number"
-                      step="1"
-                      className="sk-input font-mono tabular-nums"
-                      value={potassium}
-                      onChange={(e) => setPotassium(e.target.value)}
-                      aria-invalid={Boolean(fieldErrors.potassium)}
-                      aria-describedby={fieldErrors.potassium ? "potassium-error" : undefined}
-                    />
-                    {fieldErrors.potassium && (
-                      <p id="potassium-error" className="mt-1 text-xs text-danger">
-                        {fieldErrors.potassium}
-                      </p>
-                    )}
-                  </div>
+                <div>
+                  <label htmlFor="visibleStones" className="block text-sm font-medium text-ink">
+                    {t.wizard.steps.land.qStones}
+                  </label>
+                  <select
+                    id="visibleStones"
+                    value={visibleStones}
+                    onChange={(e) => setVisibleStones(e.target.value as VisibleStonesOption)}
+                    className="sk-input mt-1.5"
+                  >
+                    {STONES.map((s) => (
+                      <option key={s} value={s}>
+                        {t.wizard.stones[s].label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-              </>
-            )}
-          </div>
-        )}
 
-        {/* SECTION C: FARMING CONDITIONS */}
-        {step === 2 && (
-          <div className="space-y-5">
-            <h2 className="text-lg font-semibold text-ink">{t.form.stepFarming}</h2>
+                <div>
+                  <label htmlFor="waterlogging" className="block text-sm font-medium text-ink">
+                    {t.wizard.steps.land.qWaterlog}
+                  </label>
+                  <select
+                    id="waterlogging"
+                    value={waterloggingIssue}
+                    onChange={(e) => setWaterloggingIssue(e.target.value as WaterloggingIssueOption)}
+                    className="sk-input mt-1.5"
+                  >
+                    {WATERLOGS.map((w) => (
+                      <option key={w} value={w}>
+                        {t.wizard.waterlogs[w].label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="erosion" className="block text-sm font-medium text-ink">
+                    {t.wizard.steps.land.qErosion}
+                  </label>
+                  <select
+                    id="erosion"
+                    value={erosionIssue}
+                    onChange={(e) => setErosionIssue(e.target.value as ErosionIssueOption)}
+                    className="sk-input mt-1.5"
+                  >
+                    {EROSIONS.map((er) => (
+                      <option key={er} value={er}>
+                        {t.wizard.erosions[er].label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 6: WATER AVAILABILITY */}
+          {step === 6 && (
+            <div className="space-y-6">
+              <div>
+                <p className="text-base font-medium text-ink mb-3">{t.wizard.steps.water.qSource}</p>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {WATER_SOURCES.map((key) => {
+                    const selected = waterSource === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setWaterSource(key)}
+                        aria-pressed={selected}
+                        className={`sk-choice-card flex items-center justify-between rounded-xl px-4 py-3.5 text-left text-sm font-medium ${
+                          selected ? "border-accent ring-2 ring-accent/40 bg-elevated text-ink" : "text-secondary"
+                        }`}
+                      >
+                        <span>{t.wizard.waterSources[key].label}</span>
+                        {selected && <Check className="h-4 w-4 text-accent shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-base font-medium text-ink mb-3">{t.wizard.steps.water.qReliability}</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {WATER_RELIABILITIES.map((key) => {
+                    const selected = waterReliability === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setWaterReliability(key)}
+                        aria-pressed={selected}
+                        className={`sk-choice-card flex items-center justify-between rounded-xl px-4 py-3.5 text-left text-sm font-medium ${
+                          selected ? "border-accent ring-2 ring-accent/40 bg-elevated text-ink" : "text-secondary"
+                        }`}
+                      >
+                        <span>{t.wizard.waterReliabilities[key].label}</span>
+                        {selected && <Check className="h-4 w-4 text-accent shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 7: FARMING HISTORY (ALL OPTIONAL) */}
+          {step === 7 && (
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
-                <label htmlFor="season" className="block text-sm font-medium text-secondary mb-1.5">
-                  {t.form.season}
-                </label>
-                <select
-                  id="season"
-                  className="sk-input"
-                  value={season}
-                  onChange={(e) => setSeason(e.target.value as SeasonOption)}
-                >
-                  {SEASONS.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="waterAvailability" className="block text-sm font-medium text-secondary mb-1.5">
-                  {t.form.waterAvailability}
-                </label>
-                <select
-                  id="waterAvailability"
-                  className="sk-input"
-                  value={waterAvailability}
-                  onChange={(e) => setWaterAvailability(e.target.value as WaterAvailabilityOption)}
-                >
-                  {WATER_LEVELS.map((w) => (
-                    <option key={w} value={w}>
-                      {w}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="irrigationType" className="block text-sm font-medium text-secondary mb-1.5">
-                  {t.form.irrigationType}
-                </label>
-                <select
-                  id="irrigationType"
-                  className="sk-input"
-                  value={irrigationType}
-                  onChange={(e) => setIrrigationType(e.target.value as IrrigationOption)}
-                >
-                  {IRRIGATION_TYPES.map((ir) => (
-                    <option key={ir} value={ir}>
-                      {ir}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="landArea" className="block text-sm font-medium text-secondary mb-1.5">
-                  {t.form.landArea}
-                </label>
-                <input
-                  id="landArea"
-                  type="number"
-                  step="0.25"
-                  className="sk-input font-mono tabular-nums"
-                  value={landArea}
-                  onChange={(e) => setLandArea(e.target.value)}
-                  aria-invalid={Boolean(fieldErrors.landArea)}
-                  aria-describedby={fieldErrors.landArea ? "landArea-error" : undefined}
-                />
-                {fieldErrors.landArea && (
-                  <p id="landArea-error" className="mt-1 text-xs text-danger">
-                    {fieldErrors.landArea}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="farmingMethod" className="block text-sm font-medium text-secondary mb-1.5">
-                  {t.form.farmingMethod}
-                </label>
-                <select
-                  id="farmingMethod"
-                  className="sk-input"
-                  value={farmingMethod}
-                  onChange={(e) => setFarmingMethod(e.target.value as FarmingMethodOption)}
-                >
-                  {FARMING_METHODS.map((fm) => (
-                    <option key={fm} value={fm}>
-                      {fm}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="previousCrop" className="block text-sm font-medium text-secondary mb-1.5">
-                  {t.form.previousCrop}
+                <label htmlFor="previousCrop" className="block text-sm font-medium text-ink">
+                  {t.wizard.steps.history.qPrevCrop}
                 </label>
                 <input
                   id="previousCrop"
                   type="text"
-                  className="sk-input"
                   value={previousCrop}
                   onChange={(e) => setPreviousCrop(e.target.value)}
-                  placeholder="e.g., Ragi, Maize, Fallow"
+                  placeholder={t.wizard.fields.prevCropPlaceholder}
+                  className="sk-input mt-1.5"
                 />
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* SECTION D: CLIMATIC CONDITIONS */}
-        {step === 3 && (
-          <div className="space-y-5">
-            <h2 className="text-lg font-semibold text-ink">{t.form.stepClimate}</h2>
-
-            <div className="flex items-start gap-3 rounded-lg border border-info/30 bg-info/10 p-4 text-sm text-secondary">
-              <Info className="mt-0.5 h-4 w-4 shrink-0 text-info" aria-hidden="true" />
-              <p>{t.form.climateNoLiveWarning}</p>
-            </div>
-
-            <div className="grid gap-5 sm:grid-cols-2">
               <div>
-                <label htmlFor="climateSource" className="block text-sm font-medium text-secondary mb-1.5">
-                  {t.form.climateSource}
+                <label htmlFor="prevSuccess" className="block text-sm font-medium text-ink">
+                  {t.wizard.steps.history.qSuccess}
                 </label>
                 <select
-                  id="climateSource"
-                  className="sk-input"
-                  value={climateSource}
-                  onChange={(e) => setClimateSource(e.target.value as "measured" | "estimate" | "reference")}
+                  id="prevSuccess"
+                  value={previousCropSuccess}
+                  onChange={(e) => setPreviousCropSuccess(e.target.value as "" | "yes" | "partial" | "no" | "not_sure")}
+                  className="sk-input mt-1.5"
                 >
-                  <option value="estimate">{t.form.climateSourceEstimate}</option>
-                  <option value="measured">{t.form.climateSourceMeasured}</option>
-                  <option value="reference">{t.form.climateSourceReference}</option>
+                  <option value="">{t.wizard.optionalBadge}</option>
+                  {Object.entries(t.wizard.successOptions).map(([val, label]) => (
+                    <option key={val} value={val}>
+                      {label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div>
-                <label htmlFor="temperature" className="block text-sm font-medium text-secondary mb-1.5">
-                  {t.form.temperature}
+                <label htmlFor="droughtHist" className="block text-sm font-medium text-ink">
+                  {t.wizard.steps.history.qDrought}
                 </label>
-                <input
-                  id="temperature"
-                  type="number"
-                  step="0.5"
-                  className="sk-input font-mono tabular-nums"
-                  value={temperature}
-                  onChange={(e) => setTemperature(e.target.value)}
-                  aria-invalid={Boolean(fieldErrors.temperature)}
-                  aria-describedby={fieldErrors.temperature ? "temp-error" : undefined}
-                />
-                {fieldErrors.temperature && (
-                  <p id="temp-error" className="mt-1 text-xs text-danger">
-                    {fieldErrors.temperature}
-                  </p>
-                )}
+                <select
+                  id="droughtHist"
+                  value={droughtHistory}
+                  onChange={(e) => setDroughtHistory(e.target.value as "" | "yes" | "no" | "uncertain")}
+                  className="sk-input mt-1.5"
+                >
+                  <option value="">{t.wizard.optionalBadge}</option>
+                  {Object.entries(t.wizard.yesNoUncertain).map(([val, label]) => (
+                    <option key={val} value={val}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <label htmlFor="humidity" className="block text-sm font-medium text-secondary mb-1.5">
-                  {t.form.humidity}
+                <label htmlFor="floodHist" className="block text-sm font-medium text-ink">
+                  {t.wizard.steps.history.qFlood}
                 </label>
-                <input
-                  id="humidity"
-                  type="number"
-                  step="1"
-                  className="sk-input font-mono tabular-nums"
-                  value={humidity}
-                  onChange={(e) => setHumidity(e.target.value)}
-                  aria-invalid={Boolean(fieldErrors.humidity)}
-                  aria-describedby={fieldErrors.humidity ? "humidity-error" : undefined}
-                />
-                {fieldErrors.humidity && (
-                  <p id="humidity-error" className="mt-1 text-xs text-danger">
-                    {fieldErrors.humidity}
-                  </p>
-                )}
+                <select
+                  id="floodHist"
+                  value={floodHistory}
+                  onChange={(e) => setFloodHistory(e.target.value as "" | "yes" | "no" | "uncertain")}
+                  className="sk-input mt-1.5"
+                >
+                  <option value="">{t.wizard.optionalBadge}</option>
+                  {Object.entries(t.wizard.yesNoUncertain).map(([val, label]) => (
+                    <option key={val} value={val}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <label htmlFor="rainfall" className="block text-sm font-medium text-secondary mb-1.5">
-                  {t.form.rainfall}
+                <label htmlFor="pestHistory" className="block text-sm font-medium text-ink">
+                  {t.wizard.steps.history.qPests}
                 </label>
                 <input
-                  id="rainfall"
-                  type="number"
-                  step="10"
-                  className="sk-input font-mono tabular-nums"
-                  value={rainfall}
-                  onChange={(e) => setRainfall(e.target.value)}
-                  aria-invalid={Boolean(fieldErrors.rainfall)}
-                  aria-describedby={fieldErrors.rainfall ? "rainfall-error" : undefined}
+                  id="pestHistory"
+                  type="text"
+                  value={pestHistory}
+                  onChange={(e) => setPestHistory(e.target.value)}
+                  placeholder={t.wizard.fields.pestPlaceholder}
+                  className="sk-input mt-1.5"
                 />
-                {fieldErrors.rainfall && (
-                  <p id="rainfall-error" className="mt-1 text-xs text-danger">
-                    {fieldErrors.rainfall}
-                  </p>
-                )}
+              </div>
+
+              <div>
+                <label htmlFor="landArea" className="block text-sm font-medium text-ink">
+                  {t.wizard.steps.history.qArea}
+                </label>
+                <input
+                  id="landArea"
+                  type="number"
+                  min={0.1}
+                  max={1000}
+                  step="0.1"
+                  value={landAreaAcres}
+                  onChange={(e) => setLandAreaAcres(e.target.value)}
+                  placeholder={t.wizard.fields.areaPlaceholder}
+                  className="sk-input mt-1.5 font-mono tabular-nums"
+                />
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Navigation controls */}
-        <div className="flex flex-col-reverse gap-3 border-t border-white/10 pt-6 sm:flex-row sm:justify-between">
-          {step > 0 ? (
-            <button
-              type="button"
-              onClick={() => setStep((s) => Math.max(0, s - 1))}
-              className="sk-btn-secondary"
-            >
+          {/* STEP 8: SEASON & PLANNING */}
+          {step === 8 && (
+            <div className="space-y-6">
+              <div>
+                <p className="text-sm font-semibold text-ink mb-2.5">{t.wizard.steps.season.qSeason}</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {SEASONS.map((s) => {
+                    const selected = season === s;
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setSeason(s)}
+                        aria-pressed={selected}
+                        className={`sk-choice-card flex items-center justify-between rounded-xl px-4 py-3 text-left text-sm font-medium ${
+                          selected ? "border-accent ring-2 ring-accent/40 bg-elevated text-ink" : "text-secondary"
+                        }`}
+                      >
+                        <span>{t.wizard.seasons[s].label}</span>
+                        {selected && <Check className="h-4 w-4 text-accent shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="sowingMonth" className="block text-sm font-medium text-ink">
+                    {t.wizard.steps.season.qMonth}
+                  </label>
+                  <select
+                    id="sowingMonth"
+                    value={intendedMonth}
+                    onChange={(e) => setIntendedMonth(e.target.value)}
+                    className="sk-input mt-1.5"
+                  >
+                    <option value="">{t.wizard.fields.monthAny}</option>
+                    {MONTHS.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="durationPref" className="block text-sm font-medium text-ink">
+                    {t.wizard.steps.season.qDuration}
+                  </label>
+                  <select
+                    id="durationPref"
+                    value={durationPreference}
+                    onChange={(e) => setDurationPreference(e.target.value as DurationPreferenceOption)}
+                    className="sk-input mt-1.5"
+                  >
+                    {DURATIONS.map((d) => (
+                      <option key={d} value={d}>
+                        {t.wizard.durations[d].label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold text-ink mb-2.5">{t.wizard.steps.season.qPriority}</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {PRIORITIES.map((key) => {
+                    const selected = farmingPriority === key;
+                    const copy = t.wizard.priorities[key];
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setFarmingPriority(key)}
+                        aria-pressed={selected}
+                        className={`sk-choice-card rounded-xl p-3.5 text-left ${
+                          selected ? "border-accent ring-2 ring-accent/40 bg-elevated" : ""
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-ink">{copy.label}</span>
+                          {selected && <Check className="h-4 w-4 text-accent shrink-0" />}
+                        </div>
+                        {copy.desc && <p className="mt-1 text-xs text-secondary">{copy.desc}</p>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Navigation Buttons */}
+        <div className="mt-8 flex items-center justify-between border-t border-ink/10 pt-5">
+          {step > 1 ? (
+            <button type="button" onClick={handleBack} className="sk-btn-secondary">
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-              <span>{t.form.back}</span>
+              <span>{t.wizard.back}</span>
             </button>
           ) : (
             <div />
           )}
 
-          {step < 3 ? (
+          {step < TOTAL_STEPS ? (
             <button type="button" onClick={handleNext} className="sk-btn-primary">
-              <span>{t.form.next}</span>
+              <span>{t.wizard.next}</span>
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </button>
           ) : (
             <button type="submit" disabled={submitting} className="sk-btn-primary">
-              <span>{submitting ? t.form.submitting : t.form.submit}</span>
-              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              {submitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  <span>{t.wizard.submitting}</span>
+                </>
+              ) : (
+                <>
+                  <span>{t.wizard.submit}</span>
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </>
+              )}
             </button>
           )}
         </div>

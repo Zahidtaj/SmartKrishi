@@ -5,7 +5,7 @@ export function Footer() {
   const { t } = useI18n();
 
   return (
-    <footer className="border-t border-white/10 bg-surface/90 mt-16 no-print">
+    <footer className="border-t border-ink/10 bg-surface/90 mt-16 no-print">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
@@ -54,7 +54,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 border-t border-white/10 pt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs text-muted">
+        <div className="mt-8 border-t border-ink/10 pt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-xs text-muted">
           <p>{t.footer.disclaimer}</p>
           <p className="shrink-0">© {new Date().getFullYear()} SmartKrishi VTU Community Project</p>
         </div>

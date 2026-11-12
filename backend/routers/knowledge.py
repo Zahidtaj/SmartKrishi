@@ -12,12 +12,19 @@ from backend.schemas import (
     KnowledgeArticleSummary,
     SoilAnalysisRequest,
     SoilAnalysisResponse,
+    SoilObservationRequest,
 )
 from backend.services.soil_health_service import analyze_soil_health
+from backend.services.soil_observation_service import interpret_soil_observations
 
 soil_router = APIRouter(prefix="/api/soil", tags=["Soil Health"])
 knowledge_router = APIRouter(prefix="/api/knowledge", tags=["Knowledge Centre"])
 feedback_router = APIRouter(prefix="/api/feedback", tags=["Feedback"])
+
+
+@soil_router.post("/observe")
+def observe_soil(payload: SoilObservationRequest) -> dict:
+    return interpret_soil_observations(**payload.model_dump())
 
 
 @soil_router.post("/analyze", response_model=SoilAnalysisResponse)

@@ -1,51 +1,63 @@
-"""Configurable prototype suitability scoring weights and normalization helpers."""
+"""Transparent weighted suitability scoring for observation-based recommendations."""
 
-from dataclasses import dataclass
+from backend.rules.agronomic_rules import RuleEvaluation
 
-
-@dataclass(frozen=True)
-class ScoringWeights:
-    """Configurable illustrative scoring weights (sum = 1.00)."""
-    location: float = 0.20
-    soil: float = 0.20
-    water: float = 0.20
-    seasonal: float = 0.15
-    climatic: float = 0.15
-    nutrient: float = 0.10
+OBSERVATION_WEIGHTS = {
+    "location": 0.20,
+    "soil_land": 0.25,
+    "water": 0.25,
+    "seasonal": 0.15,
+    "climate": 0.08,
+    "priority_history": 0.07,
+}
 
 
-DEFAULT_WEIGHTS = ScoringWeights()
+def compute_observation_score(ev: RuleEvaluation) -> tuple[float, str, dict[str, float]]:
+    """Compute bounded illustrative suitability score (0-100) and transparent category."""
+    dims = {
+        "location": round(ev.location_score, 2),
+        "soil_land": round(ev.soil_land_score, 2),
+        "water": round(ev.water_score, 2),
+        "seasonal": round(ev.seasonal_score, 2),
+        "climate": round(ev.climate_score, 2),
+        "priority_history": round(ev.priority_score, 2),
+    }
 
-ML_BLEND_FACTOR = 0.20  # Bounded ML influence; agronomic rules govern 80% + hard constraints.
+    if ev.hard_rejected:
+        return 0.0, "Not Recommended", dims
 
+    raw = (
+        dims["location"] * OBSERVATION_WEIGHTS["location"]
+        + dims["soil_land"] * OBSERVATION_WEIGHTS["soil_land"]
+        + dims["water"] * OBSERVATION_WEIGHTS["water"]
+        + dims["seasonal"] * OBSERVATION_WEIGHTS["seasonal"]
+        + dims["climate"] * OBSERVATION_WEIGHTS["climate"]
+        + dims["priority_history"] * OBSERVATION_WEIGHTS["priority_history"]
+    )
 
-def range_proximity_score(value: float | None, low: float, high: float, tolerance: float) -> float:
-    """
-    Score 0.0-1.0 based on whether `value` lies inside [low, high] or smoothly decays within `tolerance`.
-    Returns 0.50 when `value` is None (missing measurement).
-    """
-    if value is None:
-        return 0.50
-    if low <= value <= high:
-        return 1.0
-    distance = (low - value) if value < low else (value - high)
-    if tolerance <= 0:
-        return 0.0
-    return max(0.0, round(1.0 - (distance / tolerance), 4))
+    # Guardrail caps for critical physical/water conflicts
+    if "severe_water_shortage" in ev.conflict_flags:
+        raw = min(raw, 42.0)
+    if "waterlogging_risk" in ev.conflict_flags:
+        raw = min(raw, 54.0)
+    if "rocky_stony_root_limit" in ev.conflict_flags:
+        raw = min(raw, 52.0)
+    if "insufficient_assured_water" in ev.conflict_flags:
+        raw = min(raw, 56.0)
+    if "slope_erosion_risk" in ev.conflict_flags:
+        raw = min(raw, 58.0)
 
+    final_score = round(max(5.0, min(100.0, raw)), 2)
 
-def classify_suitability(score_pct: float, conflict_flags: list[str], reduced_info: bool) -> str:
-    """Map illustrative percentage score and conflicts into human-readable suitability categories."""
-    if conflict_flags:
-        if score_pct >= 55.0:
-            return "Conditionally Suitable (Verify Constraints)"
-        return "Low Suitability (Constraint Conflicts)"
-    if reduced_info:
-        if score_pct >= 72.0:
-            return "Provisional Match (Limited Soil/Climate Data)"
-        return "Moderate Provisional Match"
-    if score_pct >= 80.0:
-        return "Highly Suitable (Prototype Match)"
-    if score_pct >= 62.0:
-        return "Suitable (Prototype Match)"
-    return "Moderately Suitable"
+    if final_score >= 76.0 and not any(
+        f in ev.conflict_flags for f in ("severe_water_shortage", "waterlogging_risk", "rocky_stony_root_limit")
+    ):
+        category = "Highly Suitable (Prototype Fit)"
+    elif final_score >= 60.0:
+        category = "Suitable with Precautions"
+    elif final_score >= 45.0:
+        category = "Marginally Suitable (Caution)"
+    else:
+        category = "Not Recommended"
+
+    return final_score, category, dims

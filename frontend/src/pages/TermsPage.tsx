@@ -14,18 +14,19 @@ export function TermsPage() {
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-base font-semibold text-ink">2. Limitations of Automated Recommendations</h2>
+          <h2 className="text-base font-semibold text-ink">2. Limitations of Observation-Based Advisories</h2>
           <p>
-            Machine learning predictions and prototype suitability scores depend on simplified regional rules and a
-            public benchmark dataset. SmartKrishi is not connected to real-time meteorological feeds, live reservoir
-            releases, or live local pest outbreak alerts.
+            Suitability rankings depend on documented Karnataka NARP agro-climatic zone rules and farmer field
+            observations (visual colour, feel texture, drainage, slope, and irrigation reliability). Soil colour
+            alone cannot establish soil pH or NPK fertility. When live meteorological feeds are disconnected or
+            unavailable, SmartKrishi uses only verified zone climate normals without fabricating live forecasts.
           </p>
         </section>
 
         <section className="space-y-2">
           <h2 className="text-base font-semibold text-ink">3. Expert Verification Required</h2>
           <p>
-            Users must verify crop selection, seed variety choice, chemical/organic nutrient dosages, and plant
+            Users must verify crop selection, seed variety choice, Soil Health Card nutrient dosages, and plant
             protection measures with certified agricultural officers at their local Raitha Samparka Kendra (RSK) or
             Krishi Vigyan Kendra (KVK) before investing in cultivation.
           </p>
@@ -43,8 +44,8 @@ export function TermsPage() {
         <section className="space-y-2">
           <h2 className="text-base font-semibold text-ink">5. User Responsibilities</h2>
           <p>
-            Users are responsible for providing accurate soil test measurements where available, respecting local
-            irrigation regulations, and using feedback forms respectfully without submitting sensitive personal data.
+            Users should select "Not sure / Unknown" whenever field conditions are uncertain rather than guessing,
+            respect local water regulations, and use feedback forms without submitting sensitive personal data.
           </p>
         </section>
       </div>

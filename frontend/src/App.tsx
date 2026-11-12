@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Footer } from "./components/Footer";
 import { Navbar } from "./components/Navbar";
 import { WelcomeAnimation } from "./components/WelcomeAnimation";
+import { ThemeProvider } from "./context/ThemeContext";
 import { I18nProvider } from "./i18n";
 import { AdminPage } from "./pages/AdminPage";
 import { ComparePage } from "./pages/ComparePage";
@@ -50,10 +51,12 @@ export function AppContent() {
 
 export default function App() {
   return (
-    <I18nProvider>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </I18nProvider>
+    <ThemeProvider>
+      <I18nProvider>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </I18nProvider>
+    </ThemeProvider>
   );
 }

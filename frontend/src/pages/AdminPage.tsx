@@ -187,23 +187,23 @@ export function AdminPage() {
             <h2 className="text-base font-semibold text-ink">ML Model & Dataset Status</h2>
             {overview.ml_metrics && (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 text-sm">
-                <div className="rounded-lg border border-white/10 bg-canvas/70 p-4">
+                <div className="rounded-lg border border-ink/10 bg-canvas/70 p-4">
                   <div className="text-xs text-muted">Model</div>
                   <div className="mt-1 font-mono text-ink">{overview.ml_metrics.model_type}</div>
                 </div>
-                <div className="rounded-lg border border-white/10 bg-canvas/70 p-4">
+                <div className="rounded-lg border border-ink/10 bg-canvas/70 p-4">
                   <div className="text-xs text-muted">Held-out Test Accuracy</div>
                   <div className="mt-1 font-mono text-accent tabular-nums">
                     {(overview.ml_metrics.test_accuracy * 100).toFixed(2)}% ({overview.ml_metrics.test_samples} test rows)
                   </div>
                 </div>
-                <div className="rounded-lg border border-white/10 bg-canvas/70 p-4">
+                <div className="rounded-lg border border-ink/10 bg-canvas/70 p-4">
                   <div className="text-xs text-muted">Macro F1 / 5-Fold CV F1</div>
                   <div className="mt-1 font-mono text-ink tabular-nums">
                     {overview.ml_metrics.macro_f1.toFixed(4)} / {overview.ml_metrics.cv_macro_f1_mean.toFixed(4)}
                   </div>
                 </div>
-                <div className="rounded-lg border border-white/10 bg-canvas/70 p-4">
+                <div className="rounded-lg border border-ink/10 bg-canvas/70 p-4">
                   <div className="text-xs text-muted">Active Crops / Rules</div>
                   <div className="mt-1 font-mono text-ink tabular-nums">
                     {crops.length} crops · {overview.regional_rules.length}+ rules shown
@@ -335,7 +335,7 @@ export function AdminPage() {
               ) : (
                 <div className="space-y-3">
                   {overview.feedback.map((fb) => (
-                    <div key={fb.id} className="rounded-lg border border-white/10 bg-canvas/60 p-3.5 text-sm space-y-2">
+                    <div key={fb.id} className="rounded-lg border border-ink/10 bg-canvas/60 p-3.5 text-sm space-y-2">
                       <div className="flex items-center justify-between text-xs text-muted">
                         <span>
                           {fb.category} {fb.district ? `· ${fb.district}` : ""}
@@ -370,7 +370,7 @@ export function AdminPage() {
                   {overview.recent_recommendations.map((rec) => (
                     <div
                       key={rec.id}
-                      className="flex items-center justify-between rounded-lg border border-white/10 bg-canvas/60 px-3.5 py-2.5 text-xs"
+                      className="flex items-center justify-between rounded-lg border border-ink/10 bg-canvas/60 px-3.5 py-2.5 text-xs"
                     >
                       <div>
                         <span className="font-mono text-ink">#{rec.id}</span> ·{" "}

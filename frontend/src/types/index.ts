@@ -3,6 +3,7 @@ export type Language = "en" | "kn";
 export interface HealthStatus {
   status: string;
   service: string;
+  engine_mode: string;
   database_connected: boolean;
   ml_model_loaded: boolean;
   ml_model_version: string | null;
@@ -22,8 +23,16 @@ export interface TalukItem {
   agro_climatic_zone: string;
   zone_code: string;
   normal_annual_rainfall_mm: number | null;
+  typical_rainfall_pattern: string;
   dominant_soil_types: string[];
+  common_soil_textures: string[];
+  major_crops: string[];
+  recommended_seasons_summary: Record<string, string>;
+  growing_period_info: string;
+  regional_references: string[];
   data_source: string;
+  verification_status: string;
+  last_updated: string;
 }
 
 export interface CropSummary {
@@ -36,14 +45,18 @@ export interface CropSummary {
   image_asset: string;
   growing_duration_days_min: number;
   growing_duration_days_max: number;
+  duration_category: string;
   water_requirement_level: string;
   water_requirement_mm_min: number;
   water_requirement_mm_max: number;
   seed_rate_kg_per_acre: string;
   record_status: string;
+  verification_status: string;
+  last_updated: string;
   in_ml_dataset: boolean;
   suitable_seasons: string[];
   suitable_soil_types: string[];
+  suitable_textures: string[];
 }
 
 export interface CropEconomic {
@@ -67,16 +80,14 @@ export interface CropDetail extends CropSummary {
   information_source: string;
   requirement: {
     suitable_soil_types: string[];
-    ph_min: number;
-    ph_max: number;
-    ph_optimal_min: number;
-    ph_optimal_max: number;
-    nitrogen_min: number;
-    nitrogen_max: number;
-    phosphorus_min: number;
-    phosphorus_max: number;
-    potassium_min: number;
-    potassium_max: number;
+    suitable_textures: string[];
+    suitable_drainage: string[];
+    moisture_needs: string;
+    suitable_land_topography: string[];
+    min_soil_depth: string;
+    drought_tolerance: string;
+    waterlogging_tolerance: string;
+    sowing_months: string[];
     temp_min_c: number;
     temp_max_c: number;
     humidity_min_pct: number;
@@ -90,45 +101,84 @@ export interface CropDetail extends CropSummary {
 }
 
 export type SoilTypeOption = "Red" | "Black" | "Alluvial" | "Laterite" | "Sandy" | "Loamy" | "Clay";
+
+export type SoilColorOption =
+  | "red"
+  | "reddish_brown"
+  | "dark_black"
+  | "brown"
+  | "yellowish"
+  | "grey"
+  | "sandy_pale"
+  | "mixed_uncertain";
+
+export type SoilTextureOption = "sandy" | "clayey" | "loamy" | "silty" | "mixed" | "not_sure";
+export type DrainageOption = "very_quickly" | "moderately" | "remains_hours" | "remains_days" | "not_sure";
+export type MoistureRetentionOption = "dries_quickly" | "short_period" | "several_days" | "not_sure";
+export type LandTopographyOption = "flat" | "slightly_sloping" | "steep_hilly" | "low_lying" | "rocky_stony";
+export type SoilDepthOption = "shallow" | "medium" | "deep" | "unknown";
+export type VisibleStonesOption = "none_few" | "moderate" | "many_stony" | "not_sure";
+export type WaterloggingIssueOption = "none" | "occasional" | "frequent" | "not_sure";
+export type ErosionIssueOption = "none" | "mild" | "severe" | "not_sure";
+export type WaterSourceOption =
+  | "rainfed"
+  | "borewell"
+  | "open_well"
+  | "canal"
+  | "pond_reservoir"
+  | "drip_irrigation"
+  | "multiple_sources";
+export type WaterReliabilityOption = "throughout_season" | "certain_months" | "limited" | "uncertain";
 export type SeasonOption = "Kharif" | "Rabi" | "Zaid" | "Perennial";
-export type IrrigationOption = "Rainfed" | "Borewell" | "Canal" | "Drip" | "Sprinkler" | "Tank / Open Well";
-export type WaterAvailabilityOption = "Rainfed" | "Limited irrigation" | "Moderate irrigation" | "Assured irrigation";
-export type FarmingMethodOption = "Conventional" | "Organic / Natural" | "Integrated (INM/IPM)" | "Mixed / Multi-crop";
+export type DurationPreferenceOption = "short" | "long" | "flexible";
+export type FarmingPriorityOption =
+  | "low_water"
+  | "short_duration"
+  | "land_suitability"
+  | "household_food"
+  | "commercial";
 
 export interface RecommendationPayload {
   state: string;
   district: string;
   taluk: string;
   village?: string | null;
-  agro_climatic_zone?: string | null;
-  soil_type: SoilTypeOption;
-  soil_data_available: boolean;
-  soil_measurement_source: "soil_test" | "estimate" | "unavailable";
-  soil_test_date?: string | null;
-  ph?: number | null;
-  nitrogen?: number | null;
-  phosphorus?: number | null;
-  potassium?: number | null;
-  season: SeasonOption;
-  irrigation_type: IrrigationOption;
-  water_availability: WaterAvailabilityOption;
-  land_area_acres: number;
-  farming_method: FarmingMethodOption;
+
+  soil_color: SoilColorOption;
+  soil_texture: SoilTextureOption;
+  drainage_after_rain: DrainageOption;
+  moisture_retention: MoistureRetentionOption;
+
+  land_topography: LandTopographyOption;
+  soil_depth: SoilDepthOption;
+  visible_stones: VisibleStonesOption;
+  waterlogging_issue: WaterloggingIssueOption;
+  erosion_issue: ErosionIssueOption;
+
+  water_source: WaterSourceOption;
+  water_reliability: WaterReliabilityOption;
+
   previous_crop?: string | null;
-  temperature?: number | null;
-  humidity?: number | null;
-  rainfall?: number | null;
-  climate_source: "measured" | "estimate" | "reference";
+  previous_crop_success?: "yes" | "partial" | "no" | "not_sure" | null;
+  drought_history?: "yes" | "no" | "uncertain" | null;
+  flood_history?: "yes" | "no" | "uncertain" | null;
+  pest_disease_history?: string | null;
+  land_area_acres?: number | null;
+
+  season: SeasonOption;
+  intended_sowing_month?: string | null;
+  duration_preference: DurationPreferenceOption;
+  farming_priority: FarmingPriorityOption;
   language: Language;
 }
 
 export interface DimensionScores {
   location: number;
-  soil: number;
+  soil_land: number;
   water: number;
   seasonal: number;
-  climatic: number;
-  nutrient: number;
+  climate: number;
+  priority_history: number;
 }
 
 export interface RecommendedCropResult {
@@ -142,12 +192,14 @@ export interface RecommendedCropResult {
   image_asset: string;
   suitability_category: string;
   illustrative_score: number;
-  ml_probability: number | null;
   dimension_scores: DimensionScores;
   reasons_en: string[];
   reasons_kn: string[];
   limitations_en: string[];
   limitations_kn: string[];
+  missing_info_en: string[];
+  missing_info_kn: string[];
+  compatibility_badges: Record<string, string>;
   conflict_flags: string[];
   water_requirement_level: string;
   water_requirement_mm_min: number;
@@ -161,6 +213,98 @@ export interface RecommendedCropResult {
   record_status: string;
 }
 
+export interface SoilObservationResult {
+  soil_color: SoilColorOption;
+  soil_color_label_en: string;
+  soil_color_label_kn: string;
+  color_disclaimer_en: string;
+  color_disclaimer_kn: string;
+  soil_texture: SoilTextureOption;
+  effective_drainage: string;
+  effective_moisture_retention: string;
+  soil_depth: SoilDepthOption;
+  visible_stones: VisibleStonesOption;
+  waterlogging_issue: WaterloggingIssueOption;
+  erosion_issue: ErosionIssueOption;
+  observation_confidence: "high" | "moderate" | "low";
+  unknown_fields: string[];
+  insights_en: string[];
+  insights_kn: string[];
+  management_guidance_en: string[];
+  management_guidance_kn: string[];
+  optional_lab_note_en: string;
+  optional_lab_note_kn: string;
+}
+
+export interface WeatherIntelligence {
+  long_term_climate: {
+    status: string;
+    data_category: string;
+    zone_name: string;
+    zone_code: string;
+    normal_annual_rainfall_mm: number | null;
+    typical_rainfall_pattern: string;
+    season_reference: string;
+    season_normal_temp_c: number;
+    season_normal_humidity_pct: number;
+    season_normal_rainfall_mm: number;
+    growing_period_info: string;
+    source: string;
+    verification_status: string;
+    last_updated: string;
+  };
+  current_weather: {
+    status: "available" | "unavailable";
+    data_category: string;
+    provider: string;
+    observed_at?: string;
+    temperature_c: number | null;
+    humidity_pct: number | null;
+    precipitation_mm: number | null;
+    wind_speed_kmh?: number | null;
+    reason_en?: string;
+    reason_kn?: string;
+    disclaimer_en?: string;
+    disclaimer_kn?: string;
+    official_links?: Array<{ name: string; url: string }>;
+  };
+  short_term_forecast: {
+    status: "available" | "unavailable";
+    data_category: string;
+    provider: string;
+    next_7_days_rain_total_mm: number | null;
+    peak_daily_rain_mm: number | null;
+    temp_max_c?: number | null;
+    temp_min_c?: number | null;
+    reason_en?: string;
+    reason_kn?: string;
+  };
+  seasonal_outlook: {
+    status: string;
+    data_category: string;
+    outlook_summary_en: string;
+    outlook_summary_kn: string;
+    recommended_window_en: string;
+    recommended_window_kn: string;
+    limitation_en: string;
+    limitation_kn: string;
+  };
+  farming_advisory: {
+    advisory_basis: string;
+    live_weather_available: boolean;
+    sowing_suitability_en: string;
+    sowing_suitability_kn: string;
+    heavy_rainfall_risk_level: "low" | "moderate" | "high";
+    heavy_rainfall_risk_en: string;
+    heavy_rainfall_risk_kn: string;
+    dry_spell_risk_level: "low" | "moderate" | "high";
+    dry_spell_risk_en: string;
+    dry_spell_risk_kn: string;
+    irrigation_planning_en: string;
+    irrigation_planning_kn: string;
+  };
+}
+
 export interface RecommendationResponse {
   recommendation_id: number;
   created_at: string;
@@ -171,17 +315,33 @@ export interface RecommendationResponse {
   disclaimer_en: string;
   disclaimer_kn: string;
   warnings: string[];
+  missing_information: string[];
   insufficient_data_reason: string | null;
-  missing_fields: string[];
   location_context: {
     state: string;
     district: string;
     taluk: string;
-    village?: string | null;
-    agro_climatic_zone?: string | null;
-    zone_code?: string | null;
-    normal_annual_rainfall_mm?: number | null;
-    dominant_soil_types?: string[];
+    agro_climatic_zone: string;
+    zone_code: string;
+    normal_annual_rainfall_mm: number | null;
+    typical_rainfall_pattern: string;
+    dominant_soil_types: string[];
+    common_soil_textures: string[];
+    major_crops: string[];
+    recommended_seasons_summary: Record<string, string>;
+    growing_period_info: string;
+    regional_references: string[];
+    data_source: string;
+    verification_status: string;
+    last_updated: string;
+  };
+  soil_interpretation: SoilObservationResult;
+  weather_advisory: WeatherIntelligence;
+  input_provenance: {
+    farmer_observed: { label: string; fields: string[] };
+    institution_sourced: { label: string; sources: string[]; location_verification_status: string; location_last_updated: string };
+    weather_provider_sourced: { label: string; current_weather_status: string; short_term_forecast_status: string; provider: string };
+    demonstration_data: { label: string; note: string };
   };
   input_summary: Record<string, unknown>;
   recommendations: RecommendedCropResult[];
@@ -269,6 +429,7 @@ export interface KnowledgeArticleDetail extends KnowledgeArticleSummary {
 
 export interface AdminOverview {
   admin_username: string;
+  engine_mode?: string;
   dataset_provenance: Record<string, unknown>;
   dataset_validation: Record<string, unknown>;
   ml_metrics: {

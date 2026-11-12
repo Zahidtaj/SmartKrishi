@@ -17,7 +17,7 @@ from backend.schemas import (
     AdminRuleCreateRequest,
 )
 from backend.security import create_access_token, require_admin, verify_password
-from ml.config import PROVENANCE_PATH, VALIDATION_REPORT_PATH
+from ml.config import ARTIFACTS_DIR, PROVENANCE_PATH, VALIDATION_REPORT_PATH
 
 router = APIRouter(prefix="/api/admin", tags=["Administration"])
 
@@ -45,8 +45,8 @@ def admin_overview(
     admin: AdminUser = Depends(require_admin),
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
-    predictor = getattr(request.app.state, "predictor", None)
-    metrics = predictor.get_metrics() if predictor else None
+    metrics_file = Path(ARTIFACTS_DIR) / "model_metrics.json"
+    metrics = json.loads(metrics_file.read_text(encoding="utf-8")) if metrics_file.exists() else None
     provenance = json.loads(PROVENANCE_PATH.read_text(encoding="utf-8")) if Path(PROVENANCE_PATH).exists() else {}
     validation = json.loads(VALIDATION_REPORT_PATH.read_text(encoding="utf-8")) if Path(VALIDATION_REPORT_PATH).exists() else {}
 
@@ -56,6 +56,7 @@ def admin_overview(
 
     return {
         "admin_username": admin.username,
+        "engine_mode": "observation_rule_based",
         "dataset_provenance": provenance,
         "dataset_validation": validation,
         "ml_metrics": metrics,

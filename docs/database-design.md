@@ -1,17 +1,13 @@
-# Database Design
+# Database Design (SQLite & PostgreSQL Compatible)
 
-SmartKrishi implements 13 relational tables in `backend/models.py` using SQLAlchemy 2.x (12 core domain entities plus `admin_users`):
+SmartKrishi uses SQLAlchemy ORM models (`backend/models.py`) designed cleanly for local SQLite prototyping and seamless migration to PostgreSQL via `SMARTKRISHI_DATABASE_URL`.
 
-1. `farmers` — Pseudonymous session preference (`session_label`, `preferred_language`). No phone numbers or personal IDs stored.
-2. `locations` — Hierarchical State / District / Taluk records mapped to Karnataka's 10 NARP Agro-Climatic Zones (`zone_code`, `normal_annual_rainfall_mm`, `dominant_soil_types`), uniquely constrained on `(state, district, taluk)`.
-3. `soil_records` — Soil type, optional `ph`, `nitrogen`, `phosphorus`, `potassium`, `measurement_source` (`soil_test` | `estimate` | `unavailable`), and optional `soil_test_date`.
-4. `farm_profiles` — Village (optional), season, irrigation type, water availability, land area, farming method, previous crop, and climate estimates/source.
-5. `crops` — Core crop master records (`crop_key` unique, bilingual EN/KN names & guidance, duration range, water demand mm, seed rate, `in_ml_dataset`, `record_status`, `information_source`).
-6. `crop_requirements` — 1-to-1 agronomic envelope (`suitable_soil_types`, `ph_min`/`max`/`optimal`, NPK bounds, temperature/humidity/rainfall ranges, seasons, supported water levels).
-7. `regional_crop_rules` — Configurable state/zone/season suitability rules (`recommended`, `conditional`, `restricted`).
-8. `recommendations` — Logged recommendation execution header (`mode_used`, `confidence_level`, `input_snapshot`, `warnings`, `insufficient_data_reason`, `model_version`).
-9. `recommendation_results` — Ranked top-3 crop outcomes linked via foreign key (`rank`, `illustrative_score`, `ml_probability`, `dimension_scores`, bilingual reasons/limitations, `conflict_flags`).
-10. `crop_economic_data` — Illustrative cultivation cost, expected yield, indicative price, and explicit assumptions per acre (`data_status = prototype_demonstration`).
-11. `knowledge_articles` — Categorized bilingual guides with `source_name` and `source_url`.
-12. `feedback` — Non-personal user feedback with `CheckConstraint` (`rating` 1..5) and review status.
-13. `admin_users` — Administrator account table storing salted `PBKDF2-HMAC-SHA256` password hashes (`310,000` iterations).
+## Core Tables
+
+- **`locations`**: 131 Karnataka taluks across 25 districts mapped to the 10 NARP Agro-Climatic Zones (`KA-Z1`..`KA-Z10`), storing `typical_rainfall_pattern`, `dominant_soil_types`, `common_soil_textures`, `major_crops`, `recommended_seasons_summary`, `growing_period_info`, `regional_references`, `data_source`, `verification_status`, and `last_updated`.
+- **`soil_records`**: Stores physical farmer observations (`soil_color`, `soil_texture`, `drainage_after_rain`, `moisture_retention`, `soil_depth`, `visible_stones`, `waterlogging_issue`, `erosion_issue`, `observation_confidence`) plus optional nullable legacy/Soil Health Card fields.
+- **`farm_profiles`**: Stores `land_topography`, `water_source`, `water_reliability`, optional history (`previous_crop`, `previous_crop_success`, `drought_history`, `flood_history`, `pest_disease_history`, `land_area_acres`), and planning choices (`season`, `intended_sowing_month`, `duration_preference`, `farming_priority`).
+- **`crops` & `crop_requirements`**: 26 structured crop profiles carrying `suitable_textures`, `suitable_drainage`, `moisture_needs`, `suitable_land_topography`, `min_soil_depth`, `drought_tolerance`, `waterlogging_tolerance`, `sowing_months`, `weather_risk_thresholds`, `duration_category`, `verification_status`, and `last_updated`.
+- **`regional_crop_rules`**: Zone-season suitability rules (`recommended`, `conditional`, `restricted`) with English and Kannada agronomic notes and institutional citations.
+- **`recommendations` & `recommendation_results`**: Persists each advisory session along with `soil_interpretation`, `weather_advisory`, `input_provenance` (`farmer_observed`, `institution_sourced`, `weather_provider_sourced`, `demonstration_data`), `missing_information`, ranked crop results, explicit reasons, limitations, and missing-field explanations.
+- **`crop_economic_data`, `knowledge_articles`, `feedback`, `admin_users`**: Illustrative 1-acre economic comparison baselines, bilingual agronomic guides, community feedback, and PBKDF2-SHA256 admin moderation.
