@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "title": "Field Guide: Identifying Soil Texture using the Ribbon and Finger Feel Test",
+    "kannada_title": "ಬೆರಳ ಸ್ಪರ್ಶ ಮತ್ತು ರಿಬ್ಬನ್ ಪರೀಕ್ಷೆಯ ಮೂಲಕ ಮಣ್ಣಿನ ವಿನ್ಯಾಸ ಗುರುತಿಸುವುದು",
+    "category": "Soil Observation",
+    "summary": "Step-by-step practical method for farmers to determine whether their soil is sandy, loamy, silty, or clayey without laboratory testing.",
+    "content": "### Why Observation Matters\nFarmers do not need expensive laboratory tests to know the physical behavior of their soil. By observing how moist soil feels between fingers and how it rolls into a ribbon, you can reliably determine its texture.\n\n### Step 1: The Ball Test\n1. Take a small handful of topsoil (about 25 grams) from 15 cm depth.\n2. Moisten it drop by drop with clean water until it reaches the consistency of putty.\n3. Squeeze it firmly in your palm. If it does NOT hold a ball and crumbles immediately, your soil is **Sandy**.\n\n### Step 2: The Ribbon Test\n1. If it forms a ball, roll it between your palms into a cylinder the thickness of a pencil.\n2. Push the soil cylinder between your thumb and forefinger, letting it squeeze out over your finger until it breaks under its own weight.\n3. **Result:**\n   - If ribbon breaks before 2.5 cm: **Loamy or Sandy Loam**.\n   - If ribbon reaches 2.5 cm to 5 cm before breaking: **Clay Loam or Silty Clay**.\n   - If ribbon extends beyond 5 cm with a shiny flexible surface: **Heavy Clayey Soil**.\n\n### Step 3: The Grittiness Test\nRub a pinch of moist soil against the palm of your hand:\n- Very scratchy and rough = Sand dominates.\n- Smooth and flour-like = Silt dominates.\n- Sticky and greasy = Clay dominates.\n\n*Important Disclaimer*: Soil colour (red, black, brown) indicates mineral origins but does NOT directly measure chemical fertility or pH. Always combine colour with texture and drainage observations.",
+    "source": "ICAR-Central Soil Salinity Research Institute & UAS Bengaluru Agricultural Extension Bulletins",
+    "verification_status": "verified",
+    "publication_date": "2023-08-15",
+    "geographic_applicability": "Karnataka All Agro-Climatic Zones"
+  },
+  {
+    "id": 2,
+    "title": "Water-Smart Farming: Micro-Irrigation and In-Situ Moisture Conservation in Dry Zones",
+    "kannada_title": "ಒಣ ವಲಯಗಳಲ್ಲಿ ಸೂಕ್ಷ್ಮ ನೀರಾವರಿ ಮತ್ತು ತೇವಾಂಶ ಸಂರಕ್ಷಣೆ",
+    "category": "Water Management",
+    "summary": "Proven agronomic practices for conserving rainwater and optimizing scarce irrigation in Karnataka's Northern and Central Dry Zones.",
+    "content": "### Managing Chronic Moisture Stress\nIn Karnataka's Northern Dry Zone (Zone 3) and Central Dry Zone (Zone 4), annual rainfall is under 600 mm, and dry spells lasting 15 to 25 days are common during Kharif.\n\n### Key In-Situ Moisture Practices\n1. **Broad Bed and Furrow (BBF) System**: Recommended by ICRISAT and UAS Dharwad for black soils. Beds (100 cm wide) drained by shallow furrows (50 cm wide) store up to 35% more rain and prevent waterlogging during torrential showers.\n2. **Compartmental Bunding**: Creating small bunded squares (3 x 3 m or 4 x 4 m) across the field before monsoon onset allows every raindrop to soak into the profile.\n3. **Crop Residue Mulching**: Applying dry ragi straw or sugarcane trash at 5 tonnes/hectare cuts soil evaporation by 40% and keeps root zones 3°C cooler.\n4. **Farm Ponds (Krishi Honda)**: Captures excess runoff during peak rain events. Providing just one protective life-saving irrigation (5 cm depth) from a farm pond during pod-setting doubles pulse and groundnut yields during dry spells.",
+    "source": "UAS Dharwad Directorate of Research & Karnataka Watershed Development Department",
+    "verification_status": "verified",
+    "publication_date": "2023-11-20",
+    "geographic_applicability": "Zones 1, 2, 3, 4, 5, 6"
+  },
+  {
+    "id": 3,
+    "title": "Pulse-Cereal Crop Rotation: Breaking Pest Cycles and Restoring Nitrogen",
+    "kannada_title": "ಬೇಳೆಕಾಳು-ಧಾನ್ಯ ಬೆಳೆ ಪರಿವರ್ತನೆ: ಕೀಟ ನಿಯಂತ್ರಣ ಮತ್ತು ಮಣ್ಣಿನ ಫಲವತ್ತತೆ",
+    "category": "Crop Planning",
+    "summary": "Agronomic evidence for alternating cereals with grain legumes to avoid soil exhaustion and suppress recurring diseases like Fusarium wilt.",
+    "content": "### The Peril of Mono-Cropping\nRepeatedly growing cereals (like Maize or Jowar) year after year depletes nitrogen and trace minerals while multiplying soil-borne pathogens. Similarly, continuous Red Gram or Chickpea cultivation causes devastating outbreaks of Fusarium wilt.\n\n### Documented Rotation Advantages\n1. **Biological Nitrogen Fixation**: Grain legumes (Red Gram, Green Gram, Chickpea, Soybean) form symbiotic nodules with Rhizobium bacteria, fixing 30 to 80 kg of atmospheric nitrogen per acre, reducing synthetic urea requirements for the subsequent crop by 25-30%.\n2. **Root Depth Diversity**: Shallow-rooted cereals (Ragi, Maize) feed on the upper 20-30 cm of soil, whereas deep-rooted Red Gram taps moisture and minerals from 1.5 to 2.0 meters depth, naturally breaking hard plow pans.\n3. **Pathogen Disruption**: Soil-borne resting spores of Pigeonpea wilt (Fusarium udum) decline drastically when followed by non-host crops such as Sorghum or Ragi.",
+    "source": "ICAR-Indian Institute of Pulses Research (IIPR) & UAS GKVK Bengaluru",
+    "verification_status": "verified",
+    "publication_date": "2024-02-10",
+    "geographic_applicability": "Karnataka Statewide"
+  },
+  {
+    "id": 4,
+    "title": "Contingency Crop Planning for Delayed Monsoons in Karnataka",
+    "kannada_title": "ಮುಂಗಾರು ಮಳೆ ವಿಳಂಬವಾದಾಗ ತುರ್ತು ಬೆಳೆ ಯೋಜನೆ",
+    "category": "Agricultural Advisory",
+    "summary": "Official contingency crop alternatives when normal June/July monsoon rains are delayed until August or September.",
+    "content": "### What to Sow When Rains Are Delayed\nWhen the southwest monsoon onset is delayed, continuing with long-duration crops like regular Red Gram or Cotton leads to crop failure due to terminal winter drought.\n\n### UAS Bengaluru & Dharwad Contingency Guidelines\n- **If rains arrive by July 15th**: Sow regular medium-duration Ragi (GPU-28, ML-365), Groundnut (KCG-2, TMV-2), or Maize.\n- **If rains arrive between July 15th and August 15th**: Shift to short-duration Ragi varieties (GPU-48, Indaf-7), Sunflower, or Green Gram.\n- **If rains are delayed beyond August 15th**: Stop sowing Groundnut or Maize. Shift immediately to drought-hardy contingency crops: **Horse Gram (Huruli)**, **Cowpea (Navane)**, or **Niger (Huchchellu)**.\n- **Late September Window**: In black soil regions, skip Kharif completely and preserve weed-free profile moisture for an early **Rabi Jowar (M 35-1)** or **Chickpea (JG-11 / Annigeri-1)** crop.",
+    "source": "All India Coordinated Research Project on Dryland Agriculture (AICRPDA), UAS Bengaluru",
+    "verification_status": "verified",
+    "publication_date": "2024-05-30",
+    "geographic_applicability": "Karnataka Dry Zones 2, 3, 4, 5, 6"
+  }
+]

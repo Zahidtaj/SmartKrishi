@@ -1,0 +1,992 @@
+[
+  {
+    "id": "ragi",
+    "crop_name": "Finger Millet (Ragi)",
+    "kannada_name": "ರಾಗಿ",
+    "scientific_name": "Eleusine coracana",
+    "category": "Millet / Nutri-Cereal",
+    "suitable_zones": [4, 5, 6, 7],
+    "suitable_districts": ["Bengaluru Rural", "Bengaluru Urban", "Ramanagara", "Kolar", "Chikkaballapura", "Tumakuru", "Mandya", "Mysuru", "Chamarajanagara", "Hassan", "Chitradurga"],
+    "preferred_soil_textures": ["Loamy", "Sandy", "Mixed"],
+    "acceptable_soil_textures": ["Silty"],
+    "unsuitable_soil_textures": ["Clayey"],
+    "preferred_soil_colors": ["Red", "Reddish brown", "Brown"],
+    "acceptable_soil_colors": ["Yellowish", "Light sandy", "Mixed", "Grey"],
+    "unsuitable_soil_colors": ["Dark black"],
+    "drainage_requirements": {
+      "preferred": ["Water drains moderately", "Water drains quickly"],
+      "tolerated": ["Water remains for several hours"],
+      "unsuitable": ["Water remains for one or more days"]
+    },
+    "moisture_retention": {
+      "preferred": ["Soil retains moisture for a short period", "Soil retains moisture for several days"],
+      "tolerated": ["Soil dries quickly"]
+    },
+    "min_soil_depth": "Shallow",
+    "water_requirement_mm": { "min": 350, "optimal_min": 400, "optimal_max": 500, "max": 650 },
+    "suitable_water_sources": ["Rainfed farming", "Borewell", "Open well", "Farm pond", "Drip irrigation", "Multiple irrigation sources"],
+    "water_scarcity_tolerance": "High",
+    "temperature_c": { "min": 15, "optimal_min": 20, "optimal_max": 32, "max": 38 },
+    "rainfall_mm": { "min": 400, "optimal_min": 500, "optimal_max": 900, "max": 1200 },
+    "suitable_seasons": ["Kharif", "Summer"],
+    "sowing_windows": {
+      "Kharif": "July 1st to August 15th (Transplanting/Drilling)",
+      "Summer": "January 15th to February 15th (Irrigated)"
+    },
+    "duration_days": { "min": 105, "max": 125, "average": 115, "category": "Medium" },
+    "land_suitability": {
+      "preferred_slopes": ["Flat land", "Slightly sloping land"],
+      "tolerated_slopes": ["Steep or hilly land"],
+      "unsuitable_slopes": ["Low-lying land"]
+    },
+    "rotation_predecessors_favored": ["Red gram", "Field bean (Avare)", "Groundnut", "Cowpea"],
+    "rotation_predecessors_discouraged": [],
+    "critical_risks": [
+      "Blast disease (Pyricularia grisea) during cloudy high humidity spells",
+      "Severe drought at tillering or flowering stages",
+      "Water stagnation causing root suffocation in heavy soils"
+    ],
+    "cultivation_practices": "Drill sowing or line transplanting (22.5 x 10 cm). Intercropping with Red gram (4:2 or 8:2 ratio) recommended by UAS Bengaluru for drought resilience.",
+    "economics": {
+      "seed_cost_per_acre_inr": 600,
+      "input_cost_per_acre_inr": 7500,
+      "labor_cost_per_acre_inr": 9000,
+      "total_cost_per_acre_inr": 17100,
+      "avg_yield_quintals_per_acre_min": 10,
+      "avg_yield_quintals_per_acre_max": 16,
+      "benchmark_msp_inr_per_quintal": 4290,
+      "data_year": "2024-25",
+      "source_reference": "UAS Bengaluru PoP & Commission for Agricultural Costs and Prices (CACP) MSP 2024-25"
+    },
+    "verification_status": "verified",
+    "source_reference": "Package of Practices for Dryland Agriculture, UAS GKVK Bengaluru"
+  },
+  {
+    "id": "jowar",
+    "crop_name": "Sorghum / Great Millet (Jowar)",
+    "kannada_name": "ಜೋಳ",
+    "scientific_name": "Sorghum bicolor",
+    "category": "Cereal / Dryland Staple",
+    "suitable_zones": [1, 2, 3, 4, 8],
+    "suitable_districts": ["Vijayapura", "Bagalkote", "Kalaburagi", "Raichur", "Yadgir", "Gadag", "Ballari", "Belagavi", "Dharwad", "Haveri", "Koppal"],
+    "preferred_soil_textures": ["Clayey", "Loamy"],
+    "acceptable_soil_textures": ["Mixed", "Silty"],
+    "unsuitable_soil_textures": ["Sandy"],
+    "preferred_soil_colors": ["Dark black", "Brown", "Reddish brown"],
+    "acceptable_soil_colors": ["Grey", "Mixed", "Red"],
+    "unsuitable_soil_colors": ["Light sandy"],
+    "drainage_requirements": {
+      "preferred": ["Water drains moderately"],
+      "tolerated": ["Water drains quickly", "Water remains for several hours"],
+      "unsuitable": ["Water remains for one or more days"]
+    },
+    "moisture_retention": {
+      "preferred": ["Soil retains moisture for several days"],
+      "tolerated": ["Soil retains moisture for a short period"]
+    },
+    "min_soil_depth": "Medium",
+    "water_requirement_mm": { "min": 350, "optimal_min": 450, "optimal_max": 550, "max": 700 },
+    "suitable_water_sources": ["Rainfed farming", "Borewell", "Canal irrigation", "Open well", "Farm pond"],
+    "water_scarcity_tolerance": "Very High",
+    "temperature_c": { "min": 16, "optimal_min": 25, "optimal_max": 34, "max": 40 },
+    "rainfall_mm": { "min": 350, "optimal_min": 500, "optimal_max": 750, "max": 1000 },
+    "suitable_seasons": ["Kharif", "Rabi"],
+    "sowing_windows": {
+      "Kharif": "June 15th to July 15th",
+      "Rabi": "September 15th to October 15th (Maldandi M 35-1)"
+    },
+    "duration_days": { "min": 105, "max": 130, "average": 118, "category": "Medium" },
+    "land_suitability": {
+      "preferred_slopes": ["Flat land", "Slightly sloping land"],
+      "tolerated_slopes": ["Low-lying land"],
+      "unsuitable_slopes": ["Steep or hilly land", "Rocky land"]
+    },
+    "rotation_predecessors_favored": ["Green gram", "Black gram", "Soybean", "Chickpea"],
+    "rotation_predecessors_discouraged": ["Jowar", "Maize"],
+    "critical_risks": [
+      "Shoot fly (Atherigona soccata) during first 4 weeks if delayed sowing",
+      "Grain mold if rains occur during maturity",
+      "Striga weed infestation"
+    ],
+    "cultivation_practices": "Deep black soils conserve moisture from September rains for Rabi Jowar (variety M 35-1). Sowing with seed drill at 45 x 15 cm spacing.",
+    "economics": {
+      "seed_cost_per_acre_inr": 500,
+      "input_cost_per_acre_inr": 6500,
+      "labor_cost_per_acre_inr": 8000,
+      "total_cost_per_acre_inr": 15000,
+      "avg_yield_quintals_per_acre_min": 8,
+      "avg_yield_quintals_per_acre_max": 14,
+      "benchmark_msp_inr_per_quintal": 3371,
+      "data_year": "2024-25",
+      "source_reference": "UAS Dharwad Package of Practices & CACP 2024-25"
+    },
+    "verification_status": "verified",
+    "source_reference": "UAS Dharwad Research Station & KSDA Kharif/Rabi Strategy"
+  },
+  {
+    "id": "maize",
+    "crop_name": "Maize (Corn)",
+    "kannada_name": "ಮೆಕ್ಕೆಜೋಳ",
+    "scientific_name": "Zea mays",
+    "category": "Cereal / Coarse Grain",
+    "suitable_zones": [3, 4, 5, 7, 8],
+    "suitable_districts": ["Davanagere", "Haveri", "Belagavi", "Shivamogga", "Chitradurga", "Ballari", "Bagalkote", "Hassan", "Chikkaballapura"],
+    "preferred_soil_textures": ["Loamy", "Clayey", "Mixed"],
+    "acceptable_soil_textures": ["Silty"],
+    "unsuitable_soil_textures": ["Sandy"],
+    "preferred_soil_colors": ["Reddish brown", "Brown", "Dark black", "Red"],
+    "acceptable_soil_colors": ["Grey", "Mixed"],
+    "unsuitable_soil_colors": ["Light sandy"],
+    "drainage_requirements": {
+      "preferred": ["Water drains moderately"],
+      "tolerated": ["Water drains quickly"],
+      "unsuitable": ["Water remains for several hours", "Water remains for one or more days"]
+    },
+    "moisture_retention": {
+      "preferred": ["Soil retains moisture for several days"],
+      "tolerated": ["Soil retains moisture for a short period"]
+    },
+    "min_soil_depth": "Medium",
+    "water_requirement_mm": { "min": 500, "optimal_min": 550, "optimal_max": 750, "max": 900 },
+    "suitable_water_sources": ["Borewell", "Canal irrigation", "Open well", "Rainfed farming", "Drip irrigation"],
+    "water_scarcity_tolerance": "Moderate",
+    "temperature_c": { "min": 18, "optimal_min": 22, "optimal_max": 32, "max": 38 },
+    "rainfall_mm": { "min": 550, "optimal_min": 650, "optimal_max": 1000, "max": 1300 },
+    "suitable_seasons": ["Kharif", "Rabi", "Summer"],
+    "sowing_windows": {
+      "Kharif": "June 1st to July 15th",
+      "Rabi": "October 15th to November 15th",
+      "Summer": "January 1st to February 15th"
+    },
+    "duration_days": { "min": 100, "max": 120, "average": 110, "category": "Medium" },
+    "land_suitability": {
+      "preferred_slopes": ["Flat land", "Slightly sloping land"],
+      "tolerated_slopes": ["Steep or hilly land"],
+      "unsuitable_slopes": ["Low-lying land"]
+    },
+    "rotation_predecessors_favored": ["Chickpea", "Soybean", "Green gram", "Groundnut"],
+    "rotation_predecessors_discouraged": ["Maize", "Sorghum"],
+    "critical_risks": [
+      "Fall Armyworm (Spodoptera frugiperda) infestation across all growth stages",
+      "Waterlogging sensitivity: even 24 hours of standing water suppresses maize yield by 40%",
+      "Drought at tasseling and silking stages"
+    ],
+    "cultivation_practices": "Optimum spacing 60 x 20 cm. High nutrient demand; requires balanced fertilizer and adequate moisture at flowering.",
+    "economics": {
+      "seed_cost_per_acre_inr": 1800,
+      "input_cost_per_acre_inr": 11000,
+      "labor_cost_per_acre_inr": 9500,
+      "total_cost_per_acre_inr": 22300,
+      "avg_yield_quintals_per_acre_min": 18,
+      "avg_yield_quintals_per_acre_max": 28,
+      "benchmark_msp_inr_per_quintal": 2225,
+      "data_year": "2024-25",
+      "source_reference": "UAS Dharwad & CACP 2024-25"
+    },
+    "verification_status": "verified",
+    "source_reference": "ICAR-Indian Institute of Maize Research & UAS Dharwad PoP"
+  },
+  {
+    "id": "paddy",
+    "crop_name": "Paddy (Rice)",
+    "kannada_name": "ಭತ್ತ",
+    "scientific_name": "Oryza sativa",
+    "category": "Cereal / Wetland Staple",
+    "suitable_zones": [2, 6, 7, 9, 10],
+    "suitable_districts": ["Mandya", "Mysuru", "Shivamogga", "Dakshina Kannada", "Udupi", "Uttara Kannada", "Raichur", "Ballari", "Koppal", "Hassan", "Kodagu"],
+    "preferred_soil_textures": ["Clayey", "Loamy"],
+    "acceptable_soil_textures": ["Silty"],
+    "unsuitable_soil_textures": ["Sandy", "Light sandy"],
+    "preferred_soil_colors": ["Dark black", "Brown", "Grey", "Reddish brown"],
+    "acceptable_soil_colors": ["Red", "Mixed"],
+    "unsuitable_soil_colors": ["Light sandy", "Yellowish"],
+    "drainage_requirements": {
+      "preferred": ["Water remains for several hours", "Water remains for one or more days"],
+      "tolerated": ["Water drains moderately"],
+      "unsuitable": ["Water drains quickly"]
+    },
+    "moisture_retention": {
+      "preferred": ["Soil retains moisture for several days"],
+      "tolerated": []
+    },
+    "min_soil_depth": "Medium",
+    "water_requirement_mm": { "min": 1100, "optimal_min": 1250, "optimal_max": 1600, "max": 2200 },
+    "suitable_water_sources": ["Canal irrigation", "Borewell", "Open well", "Reservoir", "Multiple irrigation sources"],
+    "water_scarcity_tolerance": "Very Low",
+    "temperature_c": { "min": 20, "optimal_min": 24, "optimal_max": 33, "max": 38 },
+    "rainfall_mm": { "min": 1000, "optimal_min": 1200, "optimal_max": 3500, "max": 4500 },
+    "suitable_seasons": ["Kharif", "Rabi", "Summer"],
+    "sowing_windows": {
+      "Kharif": "June 15th to July 31st (Nursery / Direct seeding)",
+      "Summer": "December 15th to January 20th"
+    },
+    "duration_days": { "min": 120, "max": 150, "average": 135, "category": "Long" },
+    "land_suitability": {
+      "preferred_slopes": ["Flat land", "Low-lying land"],
+      "tolerated_slopes": ["Slightly sloping land"],
+      "unsuitable_slopes": ["Steep or hilly land", "Rocky land"]
+    },
+    "rotation_predecessors_favored": ["Green gram", "Black gram", "Sunhemp", "Sesbania"],
+    "rotation_predecessors_discouraged": [],
+    "critical_risks": [
+      "Blast disease (Magnaporthe oryzae) in humid hilly and coastal tracts",
+      "Brown Plant Hopper (BPH) and Stem borer",
+      "Severe yield collapse if canal water supply is interrupted for > 7 days"
+    ],
+    "cultivation_practices": "Puddling and transplanting 20-25 day old seedlings (20 x 10 cm). Alternating wetting and drying (AWD) saves 25% water in canal command.",
+    "economics": {
+      "seed_cost_per_acre_inr": 1200,
+      "input_cost_per_acre_inr": 13500,
+      "labor_cost_per_acre_inr": 14000,
+      "total_cost_per_acre_inr": 28700,
+      "avg_yield_quintals_per_acre_min": 20,
+      "avg_yield_quintals_per_acre_max": 30,
+      "benchmark_msp_inr_per_quintal": 2300,
+      "data_year": "2024-25",
+      "source_reference": "UAS Bengaluru PoP & CACP 2024-25"
+    },
+    "verification_status": "verified",
+    "source_reference": "Directorate of Rice Research & UAS Bengaluru/Dharwad PoP"
+  },
+  {
+    "id": "groundnut",
+    "crop_name": "Groundnut (Peanut)",
+    "kannada_name": "ಕಡಲೆಕಾಯಿ",
+    "scientific_name": "Arachis hypogaea",
+    "category": "Oilseed / Legume",
+    "suitable_zones": [3, 4, 5, 7, 8],
+    "suitable_districts": ["Tumakuru", "Chitradurga", "Kolar", "Chikkaballapura", "Gadag", "Ballari", "Bagalkote", "Haveri", "Dharwad"],
+    "preferred_soil_textures": ["Sandy", "Loamy", "Mixed"],
+    "acceptable_soil_textures": ["Silty"],
+    "unsuitable_soil_textures": ["Clayey"],
+    "preferred_soil_colors": ["Red", "Reddish brown", "Light sandy", "Brown"],
+    "acceptable_soil_colors": ["Yellowish", "Mixed"],
+    "unsuitable_soil_colors": ["Dark black"],
+    "drainage_requirements": {
+      "preferred": ["Water drains quickly", "Water drains moderately"],
+      "tolerated": [],
+      "unsuitable": ["Water remains for several hours", "Water remains for one or more days"]
+    },
+    "moisture_retention": {
+      "preferred": ["Soil retains moisture for a short period", "Soil retains moisture for several days"],
+      "tolerated": ["Soil dries quickly"]
+    },
+    "min_soil_depth": "Medium",
+    "water_requirement_mm": { "min": 400, "optimal_min": 450, "optimal_max": 600, "max": 750 },
+    "suitable_water_sources": ["Rainfed farming", "Borewell", "Open well", "Drip irrigation", "Farm pond"],
+    "water_scarcity_tolerance": "Moderate",
+    "temperature_c": { "min": 20, "optimal_min": 24, "optimal_max": 32, "max": 36 },
+    "rainfall_mm": { "min": 450, "optimal_min": 550, "optimal_max": 800, "max": 1100 },
+    "suitable_seasons": ["Kharif", "Summer"],
+    "sowing_windows": {
+      "Kharif": "June 15th to July 20th",
+      "Summer": "January 1st to February 10th (Irrigated)"
+    },
+    "duration_days": { "min": 100, "max": 115, "average": 105, "category": "Medium" },
+    "land_suitability": {
+      "preferred_slopes": ["Flat land", "Slightly sloping land"],
+      "tolerated_slopes": [],
+      "unsuitable_slopes": ["Low-lying land", "Steep or hilly land", "Rocky land"]
+    },
+    "rotation_predecessors_favored": ["Ragi", "Jowar", "Maize"],
+    "rotation_predecessors_discouraged": ["Groundnut"],
+    "critical_risks": [
+      "Tikka leaf spot (Cercospora arachidicola) and Rust in rainy spells",
+      "Pegging inhibition in heavy soils (hard crust prevents peg penetration)",
+      "Aflatoxin buildup in pods if harvested in wet soil"
+    ],
+    "cultivation_practices": "Requires friable, well-aerated light red sandy loam. Application of gypsum (200 kg/acre) at flowering/pegging stage is essential for pod filling.",
+    "economics": {
+      "seed_cost_per_acre_inr": 4200,
+      "input_cost_per_acre_inr": 8500,
+      "labor_cost_per_acre_inr": 9200,
+      "total_cost_per_acre_inr": 21900,
+      "avg_yield_quintals_per_acre_min": 7,
+      "avg_yield_quintals_per_acre_max": 12,
+      "benchmark_msp_inr_per_quintal": 6783,
+      "data_year": "2024-25",
+      "source_reference": "UAS Bengaluru Dryland PoP & CACP 2024-25"
+    },
+    "verification_status": "verified",
+    "source_reference": "ICAR-Directorate of Groundnut Research & UAS Bengaluru"
+  },
+  {
+    "id": "red_gram",
+    "crop_name": "Pigeonpea / Red Gram (Tur)",
+    "kannada_name": "ತೊಗರಿ",
+    "scientific_name": "Cajanus cajan",
+    "category": "Pulse / Legume",
+    "suitable_zones": [1, 2, 3, 4, 5],
+    "suitable_districts": ["Kalaburagi", "Bidar", "Yadgir", "Raichur", "Vijayapura", "Koppal", "Bagalkote", "Chitradurga", "Kolar", "Chikkaballapura"],
+    "preferred_soil_textures": ["Clayey", "Loamy", "Mixed"],
+    "acceptable_soil_textures": ["Sandy", "Silty"],
+    "unsuitable_soil_textures": [],
+    "preferred_soil_colors": ["Dark black", "Brown", "Reddish brown", "Red"],
+    "acceptable_soil_colors": ["Grey", "Mixed"],
+    "unsuitable_soil_colors": ["Light sandy"],
+    "drainage_requirements": {
+      "preferred": ["Water drains moderately", "Water drains quickly"],
+      "tolerated": [],
+      "unsuitable": ["Water remains for several hours", "Water remains for one or more days"]
+    },
+    "moisture_retention": {
+      "preferred": ["Soil retains moisture for several days"],
+      "tolerated": ["Soil retains moisture for a short period"]
+    },
+    "min_soil_depth": "Deep",
+    "water_requirement_mm": { "min": 350, "optimal_min": 450, "optimal_max": 650, "max": 800 },
+    "suitable_water_sources": ["Rainfed farming", "Borewell", "Farm pond", "Open well", "Drip irrigation"],
+    "water_scarcity_tolerance": "Very High",
+    "temperature_c": { "min": 18, "optimal_min": 24, "optimal_max": 35, "max": 40 },
+    "rainfall_mm": { "min": 500, "optimal_min": 650, "optimal_max": 900, "max": 1100 },
+    "suitable_seasons": ["Kharif"],
+    "sowing_windows": {
+      "Kharif": "June 15th to July 15th"
+    },
+    "duration_days": { "min": 140, "max": 180, "average": 160, "category": "Long" },
+    "land_suitability": {
+      "preferred_slopes": ["Flat land", "Slightly sloping land"],
+      "tolerated_slopes": [],
+      "unsuitable_slopes": ["Low-lying land", "Rocky land"]
+    },
+    "rotation_predecessors_favored": ["Jowar", "Bajra", "Ragi", "Green gram"],
+    "rotation_predecessors_discouraged": ["Red gram"],
+    "critical_risks": [
+      "Fusarium wilt (Fusarium udum) in soil with poor drainage or mono-cropping history",
+      "Pod borer (Helicoverpa armigera) at pod setting",
+      "Water stagnation for > 48 hours causes complete root asphyxiation"
+    ],
+    "cultivation_practices": "Deep taproot system reaches 2 meters. Kalaburagi GI tag region. Excellent intercrop with Jowar, Bajra, or Groundnut. Spacing 90-120 x 20 cm.",
+    "economics": {
+      "seed_cost_per_acre_inr": 1100,
+      "input_cost_per_acre_inr": 7200,
+      "labor_cost_per_acre_inr": 7800,
+      "total_cost_per_acre_inr": 16100,
+      "avg_yield_quintals_per_acre_min": 5,
+      "avg_yield_quintals_per_acre_max": 9,
+      "benchmark_msp_inr_per_quintal": 7550,
+      "data_year": "2024-25",
+      "source_reference": "UAS Raichur & CACP 2024-25"
+    },
+    "verification_status": "verified",
+    "source_reference": "ICAR-Indian Institute of Pulses Research & UAS Raichur ZARS"
+  },
+  {
+    "id": "chickpea",
+    "crop_name": "Bengal Gram / Chickpea (Chana)",
+    "kannada_name": "ಕಡಲೆ",
+    "scientific_name": "Cicer arietinum",
+    "category": "Pulse / Legume",
+    "suitable_zones": [1, 2, 3, 8],
+    "suitable_districts": ["Vijayapura", "Bagalkote", "Kalaburagi", "Dharwad", "Gadag", "Bidar", "Raichur", "Koppal", "Belagavi", "Ballari"],
+    "preferred_soil_textures": ["Clayey", "Loamy"],
+    "acceptable_soil_textures": ["Mixed", "Silty"],
+    "unsuitable_soil_textures": ["Sandy", "Light sandy"],
+    "preferred_soil_colors": ["Dark black", "Brown", "Reddish brown"],
+    "acceptable_soil_colors": ["Grey", "Mixed"],
+    "unsuitable_soil_colors": ["Light sandy", "Yellowish"],
+    "drainage_requirements": {
+      "preferred": ["Water drains moderately"],
+      "tolerated": ["Water drains quickly"],
+      "unsuitable": ["Water remains for several hours", "Water remains for one or more days"]
+    },
+    "moisture_retention": {
+      "preferred": ["Soil retains moisture for several days"],
+      "tolerated": []
+    },
+    "min_soil_depth": "Medium",
+    "water_requirement_mm": { "min": 250, "optimal_min": 300, "optimal_max": 400, "max": 500 },
+    "suitable_water_sources": ["Rainfed farming", "Borewell", "Farm pond", "Open well"],
+    "water_scarcity_tolerance": "Very High",
+    "temperature_c": { "min": 10, "optimal_min": 18, "optimal_max": 28, "max": 33 },
+    "rainfall_mm": { "min": 300, "optimal_min": 400, "optimal_max": 650, "max": 800 },
+    "suitable_seasons": ["Rabi"],
+    "sowing_windows": {
+      "Rabi": "October 1st to November 10th"
+    },
+    "duration_days": { "min": 90, "max": 110, "average": 100, "category": "Short" },
+    "land_suitability": {
+      "preferred_slopes": ["Flat land", "Slightly sloping land"],
+      "tolerated_slopes": [],
+      "unsuitable_slopes": ["Low-lying land", "Steep or hilly land", "Rocky land"]
+    },
+    "rotation_predecessors_favored": ["Green gram", "Black gram", "Sesamum", "Early Kharif Maize"],
+    "rotation_predecessors_discouraged": ["Chickpea"],
+    "critical_risks": [
+      "Fusarium wilt (Fusarium oxysporum f. sp. ciceris) if soil temperature is high or mono-cropped",
+      "Pod borer (Helicoverpa armigera) at podding",
+      "High humidity/rain during flowering causing flower drop and Ascochyta blight"
+    ],
+    "cultivation_practices": "Cultivated on conserved residual moisture in deep black soils. Seed treatment with Trichoderma viride and Rhizobium biofertilizer. Spacing 30 x 10 cm.",
+    "economics": {
+      "seed_cost_per_acre_inr": 2200,
+      "input_cost_per_acre_inr": 5500,
+      "labor_cost_per_acre_inr": 6800,
+      "total_cost_per_acre_inr": 14500,
+      "avg_yield_quintals_per_acre_min": 6,
+      "avg_yield_quintals_per_acre_max": 10,
+      "benchmark_msp_inr_per_quintal": 5440,
+      "data_year": "2024-25",
+      "source_reference": "UAS Dharwad PoP & CACP 2024-25"
+    },
+    "verification_status": "verified",
+    "source_reference": "UAS Dharwad Main Agricultural Research Station & IIPR"
+  },
+  {
+    "id": "green_gram",
+    "crop_name": "Green Gram (Moong)",
+    "kannada_name": "ಹೆಸರು",
+    "scientific_name": "Vigna radiata",
+    "category": "Pulse / Legume",
+    "suitable_zones": [1, 2, 3, 4, 8],
+    "suitable_districts": ["Gadag", "Dharwad", "Bagalkote", "Belagavi", "Kalaburagi", "Bidar", "Yadgir", "Koppal", "Haveri"],
+    "preferred_soil_textures": ["Loamy", "Clayey", "Mixed"],
+    "acceptable_soil_textures": ["Sandy", "Silty"],
+    "unsuitable_soil_textures": [],
+    "preferred_soil_colors": ["Dark black", "Brown", "Reddish brown"],
+    "acceptable_soil_colors": ["Red", "Grey", "Mixed"],
+    "unsuitable_soil_colors": ["Light sandy"],
+    "drainage_requirements": {
+      "preferred": ["Water drains moderately", "Water drains quickly"],
+      "tolerated": [],
+      "unsuitable": ["Water remains for several hours", "Water remains for one or more days"]
+    },
+    "moisture_retention": {
+      "preferred": ["Soil retains moisture for several days", "Soil retains moisture for a short period"],
+      "tolerated": []
+    },
+    "min_soil_depth": "Shallow",
+    "water_requirement_mm": { "min": 250, "optimal_min": 300, "optimal_max": 400, "max": 500 },
+    "suitable_water_sources": ["Rainfed farming", "Borewell", "Farm pond", "Open well"],
+    "water_scarcity_tolerance": "High",
+    "temperature_c": { "min": 20, "optimal_min": 25, "optimal_max": 35, "max": 40 },
+    "rainfall_mm": { "min": 350, "optimal_min": 450, "optimal_max": 700, "max": 900 },
+    "suitable_seasons": ["Kharif", "Summer"],
+    "sowing_windows": {
+      "Kharif": "June 1st to June 30th (Early Kharif)",
+      "Summer": "January 15th to February 20th (Irrigated)"
+    },
+    "duration_days": { "min": 65, "max": 75, "average": 70, "category": "Short" },
+    "land_suitability": {
+      "preferred_slopes": ["Flat land", "Slightly sloping land"],
+      "tolerated_slopes": [],
+      "unsuitable_slopes": ["Low-lying land", "Rocky land"]
+    },
+    "rotation_predecessors_favored": ["Jowar", "Wheat", "Sunflower", "Cotton"],
+    "rotation_predecessors_discouraged": [],
+    "critical_risks": [
+      "Yellow Mosaic Virus (MYMV) transmitted by whitefly",
+      "Heavy rains at harvest causing pod shattering and grain germination inside pods",
+      "Powdery mildew"
+    ],
+    "cultivation_practices": "Ideal catch crop / short duration pulse. Leaves fixed atmospheric nitrogen in soil for subsequent Rabi crops (Rabi Jowar / Chickpea). Spacing 30 x 10 cm.",
+    "economics": {
+      "seed_cost_per_acre_inr": 800,
+      "input_cost_per_acre_inr": 4200,
+      "labor_cost_per_acre_inr": 5500,
+      "total_cost_per_acre_inr": 10500,
+      "avg_yield_quintals_per_acre_min": 4,
+      "avg_yield_quintals_per_acre_max": 7,
+      "benchmark_msp_inr_per_quintal": 8682,
+      "data_year": "2024-25",
+      "source_reference": "UAS Dharwad PoP & CACP 2024-25"
+    },
+    "verification_status": "verified",
+    "source_reference": "UAS Dharwad Package of Practices & AICRP on MULLaRP"
+  },
+  {
+    "id": "black_gram",
+    "crop_name": "Black Gram (Urad)",
+    "kannada_name": "ಉದ್ದಿನಬೇಳೆ",
+    "scientific_name": "Vigna mungo",
+    "category": "Pulse / Legume",
+    "suitable_zones": [1, 2, 3, 8],
+    "suitable_districts": ["Bidar", "Kalaburagi", "Yadgir", "Belagavi", "Dharwad", "Haveri"],
+    "preferred_soil_textures": ["Clayey", "Loamy"],
+    "acceptable_soil_textures": ["Mixed", "Silty"],
+    "unsuitable_soil_textures": ["Sandy", "Light sandy"],
+    "preferred_soil_colors": ["Dark black", "Brown", "Reddish brown"],
+    "acceptable_soil_colors": ["Grey", "Mixed"],
+    "unsuitable_soil_colors": ["Light sandy"],
+    "drainage_requirements": {
+      "preferred": ["Water drains moderately"],
+      "tolerated": ["Water drains quickly"],
+      "unsuitable": ["Water remains for several hours", "Water remains for one or more days"]
+    },
+    "moisture_retention": {
+      "preferred": ["Soil retains moisture for several days"],
+      "tolerated": ["Soil retains moisture for a short period"]
+    },
+    "min_soil_depth": "Medium",
+    "water_requirement_mm": { "min": 300, "optimal_min": 350, "optimal_max": 450, "max": 600 },
+    "suitable_water_sources": ["Rainfed farming", "Borewell", "Farm pond"],
+    "water_scarcity_tolerance": "High",
+    "temperature_c": { "min": 22, "optimal_min": 26, "optimal_max": 35, "max": 40 },
+    "rainfall_mm": { "min": 450, "optimal_min": 600, "optimal_max": 850, "max": 1000 },
+    "suitable_seasons": ["Kharif", "Rabi"],
+    "sowing_windows": {
+      "Kharif": "June 15th to July 10th",
+      "Rabi": "October 1st to October 25th (Paddy fallow)"
+    },
+    "duration_days": { "min": 75, "max": 90, "average": 80, "category": "Short" },
+    "land_suitability": {
+      "preferred_slopes": ["Flat land", "Slightly sloping land"],
+      "tolerated_slopes": [],
+      "unsuitable_slopes": ["Low-lying land", "Steep or hilly land", "Rocky land"]
+    },
+    "rotation_predecessors_favored": ["Paddy (as relay crop)", "Jowar", "Cotton"],
+    "rotation_predecessors_discouraged": [],
+    "critical_risks": [
+      "Yellow Mosaic Virus (YMV)",
+      "Leaf crinkle disease",
+      "Moisture stress during flowering and pod development"
+    ],
+    "cultivation_practices": "Extensively sown as sole crop in Bidar/Kalaburagi and as relay crop in coastal paddy fallows. Seed inoculation with Rhizobium. Spacing 30 x 10 cm.",
+    "economics": {
+      "seed_cost_per_acre_inr": 900,
+      "input_cost_per_acre_inr": 4500,
+      "labor_cost_per_acre_inr": 5800,
+      "total_cost_per_acre_inr": 11200,
+      "avg_yield_quintals_per_acre_min": 4,
+      "avg_yield_quintals_per_acre_max": 7,
+      "benchmark_msp_inr_per_quintal": 7400,
+      "data_year": "2024-25",
+      "source_reference": "UAS Dharwad PoP & CACP 2024-25"
+    },
+    "verification_status": "verified",
+    "source_reference": "UAS Dharwad & UAS Raichur Pulses Research Wing"
+  },
+  {
+    "id": "sunflower",
+    "crop_name": "Sunflower",
+    "kannada_name": "ಸೂರ್ಯಕಾಂತಿ",
+    "scientific_name": "Helianthus annuus",
+    "category": "Oilseed",
+    "suitable_zones": [1, 2, 3, 4, 8],
+    "suitable_districts": ["Raichur", "Koppal", "Ballari", "Bagalkote", "Vijayapura", "Gadag", "Chitradurga", "Kalaburagi", "Davanagere"],
+    "preferred_soil_textures": ["Clayey", "Loamy", "Mixed"],
+    "acceptable_soil_textures": ["Sandy", "Silty"],
+    "unsuitable_soil_textures": [],
+    "preferred_soil_colors": ["Dark black", "Brown", "Reddish brown"],
+    "acceptable_soil_colors": ["Red", "Grey", "Mixed"],
+    "unsuitable_soil_colors": ["Light sandy"],
+    "drainage_requirements": {
+      "preferred": ["Water drains moderately"],
+      "tolerated": ["Water drains quickly"],
+      "unsuitable": ["Water remains for several hours", "Water remains for one or more days"]
+    },
+    "moisture_retention": {
+      "preferred": ["Soil retains moisture for several days"],
+      "tolerated": ["Soil retains moisture for a short period"]
+    },
+    "min_soil_depth": "Medium",
+    "water_requirement_mm": { "min": 350, "optimal_min": 450, "optimal_max": 550, "max": 700 },
+    "suitable_water_sources": ["Rainfed farming", "Borewell", "Canal irrigation", "Open well", "Farm pond"],
+    "water_scarcity_tolerance": "High",
+    "temperature_c": { "min": 15, "optimal_min": 22, "optimal_max": 32, "max": 38 },
+    "rainfall_mm": { "min": 400, "optimal_min": 500, "optimal_max": 750, "max": 950 },
+    "suitable_seasons": ["Kharif", "Rabi", "Summer"],
+    "sowing_windows": {
+      "Kharif": "July 1st to August 10th",
+      "Rabi": "September 15th to October 25th",
+      "Summer": "January 1st to February 15th (Irrigated)"
+    },
+    "duration_days": { "min": 85, "max": 100, "average": 90, "category": "Short" },
+    "land_suitability": {
+      "preferred_slopes": ["Flat land", "Slightly sloping land"],
+      "tolerated_slopes": [],
+      "unsuitable_slopes": ["Low-lying land", "Steep or hilly land", "Rocky land"]
+    },
+    "rotation_predecessors_favored": ["Chickpea", "Green gram", "Groundnut"],
+    "rotation_predecessors_discouraged": ["Sunflower"],
+    "critical_risks": [
+      "Sunflower Necrosis Virus disease",
+      "Bird damage at seed filling stage",
+      "Poor seed set / hollow seeds due to lack of pollinator bees"
+    ],
+    "cultivation_practices": "Photo-insensitive crop suitable for multiple seasons. Hand pollination or maintaining 2-3 beehives/acre increases seed setting by 20-30%. Spacing 60 x 30 cm.",
+    "economics": {
+      "seed_cost_per_acre_inr": 1400,
+      "input_cost_per_acre_inr": 6800,
+      "labor_cost_per_acre_inr": 6500,
+      "total_cost_per_acre_inr": 14700,
+      "avg_yield_quintals_per_acre_min": 6,
+      "avg_yield_quintals_per_acre_max": 9,
+      "benchmark_msp_inr_per_quintal": 7280,
+      "data_year": "2024-25",
+      "source_reference": "UAS Raichur PoP & CACP 2024-25"
+    },
+    "verification_status": "verified",
+    "source_reference": "ICAR-Indian Institute of Oilseeds Research & UAS Raichur"
+  },
+  {
+    "id": "soybean",
+    "crop_name": "Soybean",
+    "kannada_name": "ಸೋಯಾಬೀನ್",
+    "scientific_name": "Glycine max",
+    "category": "Oilseed / Legume",
+    "suitable_zones": [1, 8],
+    "suitable_districts": ["Bidar", "Belagavi", "Dharwad", "Haveri", "Kalaburagi"],
+    "preferred_soil_textures": ["Clayey", "Loamy"],
+    "acceptable_soil_textures": ["Mixed"],
+    "unsuitable_soil_textures": ["Sandy", "Light sandy"],
+    "preferred_soil_colors": ["Dark black", "Brown", "Reddish brown"],
+    "acceptable_soil_colors": ["Grey", "Mixed"],
+    "unsuitable_soil_colors": ["Light sandy", "Yellowish"],
+    "drainage_requirements": {
+      "preferred": ["Water drains moderately"],
+      "tolerated": ["Water drains quickly"],
+      "unsuitable": ["Water remains for several hours", "Water remains for one or more days"]
+    },
+    "moisture_retention": {
+      "preferred": ["Soil retains moisture for several days"],
+      "tolerated": []
+    },
+    "min_soil_depth": "Medium",
+    "water_requirement_mm": { "min": 450, "optimal_min": 500, "optimal_max": 650, "max": 800 },
+    "suitable_water_sources": ["Rainfed farming", "Borewell", "Farm pond"],
+    "water_scarcity_tolerance": "Moderate",
+    "temperature_c": { "min": 18, "optimal_min": 24, "optimal_max": 32, "max": 38 },
+    "rainfall_mm": { "min": 600, "optimal_min": 750, "optimal_max": 1050, "max": 1250 },
+    "suitable_seasons": ["Kharif"],
+    "sowing_windows": {
+      "Kharif": "June 15th to July 15th"
+    },
+    "duration_days": { "min": 95, "max": 105, "average": 100, "category": "Short" },
+    "land_suitability": {
+      "preferred_slopes": ["Flat land", "Slightly sloping land"],
+      "tolerated_slopes": [],
+      "unsuitable_slopes": ["Low-lying land", "Steep or hilly land", "Rocky land"]
+    },
+    "rotation_predecessors_favored": ["Jowar", "Wheat", "Chickpea"],
+    "rotation_predecessors_discouraged": ["Soybean"],
+    "critical_risks": [
+      "Stem fly and Spodoptera litura caterpillar outbreaks",
+      "Rust (Phakopsora pachyrhizi) during prolonged rainy/foggy periods",
+      "Seed viability drops rapidly under high storage temperatures"
+    ],
+    "cultivation_practices": "Dual-purpose food/oilseed. Seed treatment with Bradyrhizobium japonicum is mandatory. Spacing 30-45 x 10 cm.",
+    "economics": {
+      "seed_cost_per_acre_inr": 2400,
+      "input_cost_per_acre_inr": 6200,
+      "labor_cost_per_acre_inr": 6900,
+      "total_cost_per_acre_inr": 15500,
+      "avg_yield_quintals_per_acre_min": 7,
+      "avg_yield_quintals_per_acre_max": 11,
+      "benchmark_msp_inr_per_quintal": 4892,
+      "data_year": "2024-25",
+      "source_reference": "UAS Dharwad PoP & CACP 2024-25"
+    },
+    "verification_status": "verified",
+    "source_reference": "ICAR-Indian Institute of Soybean Research & UAS Dharwad"
+  },
+  {
+    "id": "cotton",
+    "crop_name": "Cotton (Kapas)",
+    "kannada_name": "ಹತ್ತಿ",
+    "scientific_name": "Gossypium hirsutum",
+    "category": "Commercial / Fiber",
+    "suitable_zones": [2, 3, 8],
+    "suitable_districts": ["Dharwad", "Belagavi", "Haveri", "Raichur", "Ballari", "Koppal", "Gadag", "Vijayapura", "Kalaburagi"],
+    "preferred_soil_textures": ["Clayey", "Loamy"],
+    "acceptable_soil_textures": ["Mixed"],
+    "unsuitable_soil_textures": ["Sandy", "Light sandy"],
+    "preferred_soil_colors": ["Dark black", "Brown"],
+    "acceptable_soil_colors": ["Reddish brown", "Grey"],
+    "unsuitable_soil_colors": ["Light sandy", "Yellowish"],
+    "drainage_requirements": {
+      "preferred": ["Water drains moderately"],
+      "tolerated": ["Water drains quickly"],
+      "unsuitable": ["Water remains for several hours", "Water remains for one or more days"]
+    },
+    "moisture_retention": {
+      "preferred": ["Soil retains moisture for several days"],
+      "tolerated": []
+    },
+    "min_soil_depth": "Deep",
+    "water_requirement_mm": { "min": 600, "optimal_min": 700, "optimal_max": 900, "max": 1200 },
+    "suitable_water_sources": ["Borewell", "Canal irrigation", "Rainfed farming", "Drip irrigation", "Open well"],
+    "water_scarcity_tolerance": "Moderate",
+    "temperature_c": { "min": 20, "optimal_min": 25, "optimal_max": 35, "max": 42 },
+    "rainfall_mm": { "min": 650, "optimal_min": 750, "optimal_max": 1100, "max": 1300 },
+    "suitable_seasons": ["Kharif"],
+    "sowing_windows": {
+      "Kharif": "June 1st to July 15th"
+    },
+    "duration_days": { "min": 150, "max": 180, "average": 165, "category": "Long" },
+    "land_suitability": {
+      "preferred_slopes": ["Flat land", "Slightly sloping land"],
+      "tolerated_slopes": [],
+      "unsuitable_slopes": ["Low-lying land", "Steep or hilly land", "Rocky land"]
+    },
+    "rotation_predecessors_favored": ["Green gram", "Chickpea", "Soybean"],
+    "rotation_predecessors_discouraged": ["Cotton"],
+    "critical_risks": [
+      "Pink bollworm (Pectinophora gossypiella) causing internal boll rot",
+      "Sucking pest complex (aphids, jassids, thrips) during early vegetative period",
+      "Waterlogging causes flower and boll dropping"
+    ],
+    "cultivation_practices": "Deep black vertisols of Northern Karnataka (Dharwad, Raichur). Spacing 90 x 60 cm for Bt hybrids. Nipping of terminal bud at 80-90 days controls vegetative growth.",
+    "economics": {
+      "seed_cost_per_acre_inr": 1800,
+      "input_cost_per_acre_inr": 12500,
+      "labor_cost_per_acre_inr": 14500,
+      "total_cost_per_acre_inr": 28800,
+      "avg_yield_quintals_per_acre_min": 7,
+      "avg_yield_quintals_per_acre_max": 12,
+      "benchmark_msp_inr_per_quintal": 7521,
+      "data_year": "2024-25",
+      "source_reference": "UAS Dharwad PoP & CACP 2024-25"
+    },
+    "verification_status": "verified",
+    "source_reference": "Central Institute for Cotton Research & UAS Dharwad"
+  },
+  {
+    "id": "sugarcane",
+    "crop_name": "Sugarcane",
+    "kannada_name": "ಕಬ್ಬು",
+    "scientific_name": "Saccharum officinarum",
+    "category": "Commercial / Cash Crop",
+    "suitable_zones": [1, 2, 6, 7, 8],
+    "suitable_districts": ["Belagavi", "Mandya", "Bagalkote", "Vijayapura", "Mysuru", "Bidar", "Davanagere", "Hassan", "Shivamogga"],
+    "preferred_soil_textures": ["Loamy", "Clayey"],
+    "acceptable_soil_textures": ["Mixed", "Silty"],
+    "unsuitable_soil_textures": ["Sandy", "Light sandy"],
+    "preferred_soil_colors": ["Dark black", "Brown", "Reddish brown"],
+    "acceptable_soil_colors": ["Red", "Grey"],
+    "unsuitable_soil_colors": ["Light sandy"],
+    "drainage_requirements": {
+      "preferred": ["Water drains moderately"],
+      "tolerated": ["Water drains quickly", "Water remains for several hours"],
+      "unsuitable": ["Water remains for one or more days"]
+    },
+    "moisture_retention": {
+      "preferred": ["Soil retains moisture for several days"],
+      "tolerated": []
+    },
+    "min_soil_depth": "Deep",
+    "water_requirement_mm": { "min": 1500, "optimal_min": 1800, "optimal_max": 2500, "max": 3000 },
+    "suitable_water_sources": ["Canal irrigation", "Borewell", "Multiple irrigation sources", "Reservoir", "Open well"],
+    "water_scarcity_tolerance": "Very Low",
+    "temperature_c": { "min": 20, "optimal_min": 26, "optimal_max": 36, "max": 42 },
+    "rainfall_mm": { "min": 1000, "optimal_min": 1200, "optimal_max": 2000, "max": 2800 },
+    "suitable_seasons": ["Kharif", "Rabi"],
+    "sowing_windows": {
+      "Eksali (Kharif)": "June to August",
+      "Adsali": "July to August (16-18 months)",
+      "Pre-seasonal": "October to November"
+    },
+    "duration_days": { "min": 330, "max": 420, "average": 365, "category": "Perennial / Annual" },
+    "land_suitability": {
+      "preferred_slopes": ["Flat land"],
+      "tolerated_slopes": ["Slightly sloping land"],
+      "unsuitable_slopes": ["Steep or hilly land", "Rocky land", "Low-lying land"]
+    },
+    "rotation_predecessors_favored": ["Green gram", "Sunhemp", "Soybean"],
+    "rotation_predecessors_discouraged": ["Sugarcane (beyond 1-2 ratoons)"],
+    "critical_risks": [
+      "Early shoot borer (Chilo infuscatellus) and Pyrilla leafhopper",
+      "Red rot (Colletotrichum falcatum)",
+      "Cannot tolerate moisture stress during formative stage (60-120 days after planting)"
+    ],
+    "cultivation_practices": "Requires assured perennial irrigation. Co 86032 and Co 62175 popular varieties. Ridge and furrow planting at 120-150 cm spacing. Drip fertigation saves 40% water.",
+    "economics": {
+      "seed_cost_per_acre_inr": 8500,
+      "input_cost_per_acre_inr": 24000,
+      "labor_cost_per_acre_inr": 26000,
+      "total_cost_per_acre_inr": 58500,
+      "avg_yield_quintals_per_acre_min": 350,
+      "avg_yield_quintals_per_acre_max": 550,
+      "benchmark_msp_inr_per_quintal": 340,
+      "data_year": "2024-25",
+      "source_reference": "Fair and Remunerative Price (FRP) Central Govt 2024-25 & UAS Dharwad"
+    },
+    "verification_status": "verified",
+    "source_reference": "ICAR-Sugarcane Breeding Institute & S. Nijalingappa Sugar Institute Belagavi"
+  },
+  {
+    "id": "horse_gram",
+    "crop_name": "Horse Gram (Huruli)",
+    "kannada_name": "ಹುರುಳಿ",
+    "scientific_name": "Macrotyloma uniflorum",
+    "category": "Pulse / Contingency Crop",
+    "suitable_zones": [4, 5, 6, 7],
+    "suitable_districts": ["Tumakuru", "Chitradurga", "Kolar", "Chikkaballapura", "Mandya", "Mysuru", "Chamarajanagara", "Hassan", "Ramanagara"],
+    "preferred_soil_textures": ["Sandy", "Loamy", "Mixed"],
+    "acceptable_soil_textures": ["Silty", "Clayey"],
+    "unsuitable_soil_textures": [],
+    "preferred_soil_colors": ["Red", "Reddish brown", "Brown", "Light sandy"],
+    "acceptable_soil_colors": ["Grey", "Mixed", "Yellowish"],
+    "unsuitable_soil_colors": [],
+    "drainage_requirements": {
+      "preferred": ["Water drains quickly", "Water drains moderately"],
+      "tolerated": ["Water remains for several hours"],
+      "unsuitable": ["Water remains for one or more days"]
+    },
+    "moisture_retention": {
+      "preferred": ["Soil retains moisture for a short period", "Soil dries quickly"],
+      "tolerated": ["Soil retains moisture for several days"]
+    },
+    "min_soil_depth": "Shallow",
+    "water_requirement_mm": { "min": 200, "optimal_min": 250, "optimal_max": 350, "max": 450 },
+    "suitable_water_sources": ["Rainfed farming", "Farm pond"],
+    "water_scarcity_tolerance": "Extreme",
+    "temperature_c": { "min": 15, "optimal_min": 22, "optimal_max": 34, "max": 40 },
+    "rainfall_mm": { "min": 250, "optimal_min": 350, "optimal_max": 600, "max": 800 },
+    "suitable_seasons": ["Late Kharif", "Rabi"],
+    "sowing_windows": {
+      "Late Kharif / Contingency": "August 15th to September 30th"
+    },
+    "duration_days": { "min": 85, "max": 105, "average": 95, "category": "Short" },
+    "land_suitability": {
+      "preferred_slopes": ["Flat land", "Slightly sloping land", "Steep or hilly land", "Rocky land"],
+      "tolerated_slopes": [],
+      "unsuitable_slopes": ["Low-lying land"]
+    },
+    "rotation_predecessors_favored": ["Fallow", "Failed early Kharif crops"],
+    "rotation_predecessors_discouraged": [],
+    "critical_risks": [
+      "Anthracnose in humid spells",
+      "Very hardy with minimal pest vulnerability"
+    ],
+    "cultivation_practices": "The ultimate drought and contingency pulse of Karnataka drylands. Sown when regular monsoon crops fail or start too late. Flourishes in poor, gravelly, shallow red soils.",
+    "economics": {
+      "seed_cost_per_acre_inr": 500,
+      "input_cost_per_acre_inr": 2500,
+      "labor_cost_per_acre_inr": 4200,
+      "total_cost_per_acre_inr": 7200,
+      "avg_yield_quintals_per_acre_min": 3,
+      "avg_yield_quintals_per_acre_max": 6,
+      "benchmark_msp_inr_per_quintal": 5800,
+      "data_year": "2024-25",
+      "source_reference": "UAS Bengaluru PoP & State Market Benchmarks"
+    },
+    "verification_status": "verified",
+    "source_reference": "Package of Practices for Contingent Crop Planning, UAS Bengaluru"
+  },
+  {
+    "id": "sesamum",
+    "crop_name": "Sesamum (Til / Sesame)",
+    "kannada_name": "ಎಳ್ಳು",
+    "scientific_name": "Sesamum indicum",
+    "category": "Oilseed / Dryland Crop",
+    "suitable_zones": [2, 3, 4, 5, 6],
+    "suitable_districts": ["Mandya", "Mysuru", "Chamarajanagara", "Tumakuru", "Chitradurga", "Raichur", "Koppal", "Gadag"],
+    "preferred_soil_textures": ["Loamy", "Sandy", "Mixed"],
+    "acceptable_soil_textures": ["Silty"],
+    "unsuitable_soil_textures": ["Clayey"],
+    "preferred_soil_colors": ["Red", "Reddish brown", "Brown"],
+    "acceptable_soil_colors": ["Light sandy", "Mixed", "Dark black"],
+    "unsuitable_soil_colors": [],
+    "drainage_requirements": {
+      "preferred": ["Water drains quickly", "Water drains moderately"],
+      "tolerated": [],
+      "unsuitable": ["Water remains for several hours", "Water remains for one or more days"]
+    },
+    "moisture_retention": {
+      "preferred": ["Soil retains moisture for a short period"],
+      "tolerated": ["Soil dries quickly", "Soil retains moisture for several days"]
+    },
+    "min_soil_depth": "Shallow",
+    "water_requirement_mm": { "min": 250, "optimal_min": 300, "optimal_max": 400, "max": 500 },
+    "suitable_water_sources": ["Rainfed farming", "Borewell", "Farm pond"],
+    "water_scarcity_tolerance": "Very High",
+    "temperature_c": { "min": 20, "optimal_min": 25, "optimal_max": 35, "max": 40 },
+    "rainfall_mm": { "min": 350, "optimal_min": 450, "optimal_max": 700, "max": 850 },
+    "suitable_seasons": ["Summer", "Kharif"],
+    "sowing_windows": {
+      "Summer": "January 15th to February 20th",
+      "Kharif (Early)": "May 15th to June 20th"
+    },
+    "duration_days": { "min": 80, "max": 95, "average": 85, "category": "Short" },
+    "land_suitability": {
+      "preferred_slopes": ["Flat land", "Slightly sloping land"],
+      "tolerated_slopes": [],
+      "unsuitable_slopes": ["Low-lying land", "Rocky land"]
+    },
+    "rotation_predecessors_favored": ["Chickpea", "Wheat", "Jowar"],
+    "rotation_predecessors_discouraged": ["Sesamum"],
+    "critical_risks": [
+      "Phyllody disease transmitted by jassid vectors",
+      "Very sensitive to waterlogging; even a few hours of stagnant water rots seedling roots",
+      "Ant damage to sown seeds"
+    ],
+    "cultivation_practices": "Tiny seeds mixed with dry sand (1:4 ratio) for uniform broadcasting/line sowing. Spacing 30 x 10 cm. Drought-hardy oilseed.",
+    "economics": {
+      "seed_cost_per_acre_inr": 400,
+      "input_cost_per_acre_inr": 3500,
+      "labor_cost_per_acre_inr": 4800,
+      "total_cost_per_acre_inr": 8700,
+      "avg_yield_quintals_per_acre_min": 2.5,
+      "avg_yield_quintals_per_acre_max": 4.5,
+      "benchmark_msp_inr_per_quintal": 9267,
+      "data_year": "2024-25",
+      "source_reference": "UAS Bengaluru PoP & CACP 2024-25"
+    },
+    "verification_status": "verified",
+    "source_reference": "ICAR-AICRP on Sesame & UAS Bengaluru"
+  },
+  {
+    "id": "onion",
+    "crop_name": "Onion",
+    "kannada_name": "ಈರುಳ್ಳಿ",
+    "scientific_name": "Allium cepa",
+    "category": "Horticultural / Commercial Bulb",
+    "suitable_zones": [3, 4, 8],
+    "suitable_districts": ["Gadag", "Chitradurga", "Dharwad", "Bagalkote", "Vijayapura", "Haveri", "Belagavi", "Davanagere", "Ballari"],
+    "preferred_soil_textures": ["Loamy", "Mixed"],
+    "acceptable_soil_textures": ["Clayey", "Silty", "Sandy"],
+    "unsuitable_soil_textures": [],
+    "preferred_soil_colors": ["Reddish brown", "Dark black", "Brown", "Red"],
+    "acceptable_soil_colors": ["Grey", "Mixed"],
+    "unsuitable_soil_colors": ["Light sandy"],
+    "drainage_requirements": {
+      "preferred": ["Water drains moderately"],
+      "tolerated": ["Water drains quickly"],
+      "unsuitable": ["Water remains for several hours", "Water remains for one or more days"]
+    },
+    "moisture_retention": {
+      "preferred": ["Soil retains moisture for several days", "Soil retains moisture for a short period"],
+      "tolerated": []
+    },
+    "min_soil_depth": "Medium",
+    "water_requirement_mm": { "min": 350, "optimal_min": 400, "optimal_max": 550, "max": 700 },
+    "suitable_water_sources": ["Borewell", "Open well", "Drip irrigation", "Farm pond", "Rainfed farming"],
+    "water_scarcity_tolerance": "Moderate",
+    "temperature_c": { "min": 15, "optimal_min": 20, "optimal_max": 30, "max": 35 },
+    "rainfall_mm": { "min": 400, "optimal_min": 500, "optimal_max": 750, "max": 950 },
+    "suitable_seasons": ["Kharif", "Rabi"],
+    "sowing_windows": {
+      "Kharif (Early)": "May to June (Bellary Red / Arka Kalyan)",
+      "Late Kharif": "August to September",
+      "Rabi": "October to November"
+    },
+    "duration_days": { "min": 95, "max": 125, "average": 110, "category": "Medium" },
+    "land_suitability": {
+      "preferred_slopes": ["Flat land", "Slightly sloping land"],
+      "tolerated_slopes": [],
+      "unsuitable_slopes": ["Low-lying land", "Steep or hilly land", "Rocky land"]
+    },
+    "rotation_predecessors_favored": ["Maize", "Jowar", "Green gram"],
+    "rotation_predecessors_discouraged": ["Garlic", "Onion"],
+    "critical_risks": [
+      "Purple blotch (Alternaria porri) during humid rainy spells",
+      "Thrips (Thrips tabaci) causing silvering and curled leaves",
+      "Bulb rotting if soil is waterlogged before harvest"
+    ],
+    "cultivation_practices": "Raised bed or flat bed planting. Seedling transplanting at 15 x 10 cm. Critical irrigation needed during bulb enlargement. Stop watering 15 days before harvest for curing.",
+    "economics": {
+      "seed_cost_per_acre_inr": 3500,
+      "input_cost_per_acre_inr": 14000,
+      "labor_cost_per_acre_inr": 16000,
+      "total_cost_per_acre_inr": 33500,
+      "avg_yield_quintals_per_acre_min": 60,
+      "avg_yield_quintals_per_acre_max": 100,
+      "benchmark_msp_inr_per_quintal": 1600,
+      "data_year": "2024-25",
+      "source_reference": "IIHR Bengaluru & APMC Market Benchmark 2024"
+    },
+    "verification_status": "verified",
+    "source_reference": "ICAR-Indian Institute of Horticultural Research (IIHR) Bengaluru & UHS Bagalkote"
+  }
+]

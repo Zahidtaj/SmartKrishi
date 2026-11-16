@@ -1,0 +1,74 @@
+[
+  {
+    "id": "uas_bengaluru_pop",
+    "source_name": "University of Agricultural Sciences, Bengaluru (UASB) - Package of Practices for Field Crops",
+    "source_url": "https://uasbangalore.edu.in",
+    "data_category": "Agronomic crop requirements, sowing windows, water needs, regional suitability for Southern & Eastern Karnataka",
+    "geographic_coverage": "Southern Dry Zone, Eastern Dry Zone, Central Dry Zone, Southern Transition Zone (Karnataka)",
+    "collection_date": "2024-06-15",
+    "verification_date": "2024-09-01",
+    "license_or_usage": "Public Educational / Academic Agricultural Extension",
+    "data_status": "verified",
+    "update_frequency": "Biennial / Annual updates by UAS Directorate of Extension"
+  },
+  {
+    "id": "uas_dharwad_pop",
+    "source_name": "University of Agricultural Sciences, Dharwad (UASD) - Package of Practices for Dryland and Irrigated Agriculture",
+    "source_url": "https://uasd.edu",
+    "data_category": "Black soil agronomy, Rabi Jowar, Chickpea, Cotton, Soybean, Northern Karnataka cropping systems",
+    "geographic_coverage": "Northern Dry Zone, Northern Transition Zone, North Eastern Dry Zone (Karnataka)",
+    "collection_date": "2024-06-20",
+    "verification_date": "2024-09-10",
+    "license_or_usage": "Public Educational / Academic Agricultural Extension",
+    "data_status": "verified",
+    "update_frequency": "Biennial"
+  },
+  {
+    "id": "ksda_atlas",
+    "source_name": "Karnataka State Department of Agriculture (KSDA) & Planning Commission - Agro-Climatic Atlas of Karnataka",
+    "source_url": "https://raitamitra.karnataka.gov.in",
+    "data_category": "Official delineation of 10 Agro-Climatic Zones, district & taluk boundaries, annual rainfall normals",
+    "geographic_coverage": "Statewide (All 31 Districts of Karnataka)",
+    "collection_date": "2024-05-10",
+    "verification_date": "2024-08-25",
+    "license_or_usage": "Government of Karnataka Open Data",
+    "data_status": "verified",
+    "update_frequency": "Decadal / Census alignment"
+  },
+  {
+    "id": "imd_climate_normals",
+    "source_name": "India Meteorological Department (IMD) - 30-Year Climatological Rainfall and Temperature Normals (1981-2010)",
+    "source_url": "https://mausam.imd.gov.in",
+    "data_category": "Historical monthly district rainfall, temperature averages, dry spell frequency benchmarks",
+    "geographic_coverage": "District-wise Climatology for Karnataka",
+    "collection_date": "2024-07-01",
+    "verification_date": "2024-09-15",
+    "license_or_usage": "Government of India / IMD Weather Service",
+    "data_status": "verified",
+    "update_frequency": "Standard IMD Climatological Epochs"
+  },
+  {
+    "id": "open_meteo_live",
+    "source_name": "Open-Meteo Global Meteorological High-Resolution Forecast Service (WMO / ECMWF / DWD Model Ingestion)",
+    "source_url": "https://open-meteo.com",
+    "data_category": "Real-time weather parameters: current temperature, relative humidity, wind speed, 7-day precipitation forecast",
+    "geographic_coverage": "Global coordinate-based (Lat/Lon for Karnataka Taluks & Districts)",
+    "collection_date": "Live API Queries",
+    "verification_date": "2024-11-01",
+    "license_or_usage": "Open Access / Attribution CC BY 4.0",
+    "data_status": "external_live_data",
+    "update_frequency": "Hourly update cycle"
+  },
+  {
+    "id": "cacp_msp_benchmarks",
+    "source_name": "Commission for Agricultural Costs and Prices (CACP) - Minimum Support Price (MSP) and Cultivation Estimates",
+    "source_url": "https://cacp.dacnet.nic.in",
+    "data_category": "Verified benchmark cost of cultivation (A2+FL), official MSP for Kharif/Rabi seasons",
+    "geographic_coverage": "National and Karnataka State-specific Cost Studies",
+    "collection_date": "2024-07-15",
+    "verification_date": "2024-10-01",
+    "license_or_usage": "Ministry of Agriculture and Farmers Welfare, Govt of India",
+    "data_status": "verified",
+    "update_frequency": "Annual / Seasonal announcement"
+  }
+]

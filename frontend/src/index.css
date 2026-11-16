@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #071711;
+    color: #e2e8f0;
+    overflow-x: hidden;
+  }
+}
+
+/* Glassmorphism Styles */
+.glass-panel {
+  background: rgba(14, 43, 32, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(74, 222, 128, 0.15);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+}
+
+.glass-panel-light {
+  background: rgba(22, 63, 48, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(74, 222, 128, 0.12);
+}
+
+.glass-card-interactive {
+  background: rgba(16, 48, 36, 0.65);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(74, 222, 128, 0.12);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card-interactive:hover {
+  background: rgba(20, 60, 45, 0.85);
+  border-color: rgba(74, 222, 128, 0.35);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.6);
+}
+
+/* Subtle Animated Grain / Sprout Wave Gradient */
+@keyframes sway {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  50% { transform: rotate(1.5deg) translateY(-3px); }
+}
+
+.animate-sway {
+  animation: sway 6s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(1.03); }
+}
+
+.animate-glow {
+  animation: pulseGlow 8s ease-in-out infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #071711;
+}
+::-webkit-scrollbar-thumb {
+  background: #1b4d3a;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #23694f;
+}

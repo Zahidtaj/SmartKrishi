@@ -1,0 +1,157 @@
+{
+  "textures": [
+    {
+      "id": "Sandy",
+      "name": "Sandy Soil",
+      "kannada_name": "ಮರಳು ಮಣ್ಣು",
+      "physical_feel": "Gritty, rough, does not stick together when wet, particles visible to the naked eye",
+      "ribbon_test": "Cannot form a ball or ribbon; falls apart immediately when squeezed",
+      "drainage_speed": "Very Rapid",
+      "moisture_retention": "Very Low",
+      "aeration": "Excessive aeration; roots breathe easily but dry out rapidly",
+      "nutrient_leaching": "High leaching vulnerability for nitrogen and potassium",
+      "suitable_crops": ["Groundnut", "Sesamum", "Horse Gram", "Watermelon", "Cashew"],
+      "management_guidelines": "Incorporate organic matter, farmyard manure (FYM), and use frequent light irrigations or drip."
+    },
+    {
+      "id": "Clayey",
+      "name": "Clayey Soil / Heavy Black Cotton Soil",
+      "kannada_name": "ಜೇಡಿ ಮಣ್ಣು / ಕಪ್ಪು ಮಣ್ಣು",
+      "physical_feel": "Very sticky, smooth and plastic when wet; forms hard clods with deep fissures and cracks when dry",
+      "ribbon_test": "Forms a shiny, flexible ribbon longer than 5 cm without breaking",
+      "drainage_speed": "Slow to Very Slow",
+      "moisture_retention": "Extremely High (can retain water for many days)",
+      "aeration": "Poor when wet; risk of root hypoxia / asphyxiation if waterlogged",
+      "nutrient_leaching": "Very Low; high cation exchange capacity (CEC)",
+      "suitable_crops": ["Paddy", "Cotton", "Rabi Jowar", "Chickpea", "Soybean", "Sugarcane"],
+      "management_guidelines": "Provide field drainage channels. Avoid cultivating when too wet (prevents compaction). Ideal for conserving post-monsoon moisture for Rabi crops."
+    },
+    {
+      "id": "Loamy",
+      "name": "Loamy Soil",
+      "kannada_name": "ಗೋಡು ಮಣ್ಣು",
+      "physical_feel": "Even, mellow blend of sand, silt, and clay. Slightly gritty yet pliable, soft to the touch",
+      "ribbon_test": "Forms a firm ball and a short ribbon of 2.5 to 3.5 cm before breaking",
+      "drainage_speed": "Moderate / Balanced",
+      "moisture_retention": "Optimal; holds moisture without becoming waterlogged",
+      "aeration": "Excellent pore space balance for healthy microbial activity and root respiration",
+      "nutrient_leaching": "Moderate, maintains fertile conditions",
+      "suitable_crops": ["Ragi", "Maize", "Red Gram", "Vegetables", "Sunflower", "Groundnut", "Sugarcane"],
+      "management_guidelines": "The benchmark agricultural soil. Maintain organic carbon levels through crop rotation and green manuring."
+    },
+    {
+      "id": "Silty",
+      "name": "Silty Soil",
+      "kannada_name": "ಹೂಳು ಮಣ್ಣು",
+      "physical_feel": "Silky, flour-like, talcum powder texture when dry; slippery and soapy when wet, not sticky",
+      "ribbon_test": "Forms a weak ribbon of 1.5 to 2.5 cm that flakes easily",
+      "drainage_speed": "Moderate to Slow",
+      "moisture_retention": "High",
+      "aeration": "Moderate, susceptible to surface crusting under heavy rain",
+      "nutrient_leaching": "Low to Moderate",
+      "suitable_crops": ["Paddy", "Maize", "Wheat", "Sunflower", "Vegetables"],
+      "management_guidelines": "Prevent soil crusting by mulching. Enhance structure with organic compost."
+    },
+    {
+      "id": "Mixed",
+      "name": "Mixed / Gravelly Loam",
+      "kannada_name": "ಮಿಶ್ರ ಮಣ್ಣು",
+      "physical_feel": "Heterogeneous mixture of coarse sand, gravel, and loamy fines common on rolling Deccan terrain",
+      "ribbon_test": "Variable, breaks irregularly around small pebbles",
+      "drainage_speed": "Moderate to Rapid",
+      "moisture_retention": "Moderate",
+      "aeration": "Good",
+      "nutrient_leaching": "Moderate",
+      "suitable_crops": ["Ragi", "Horse Gram", "Groundnut", "Pulses", "Millets"],
+      "management_guidelines": "Contour bunding and stone terracing help retain fine topsoil."
+    },
+    {
+      "id": "Unknown",
+      "name": "Unknown / Unspecified",
+      "kannada_name": "ತಿಳಿದಿಲ್ಲ",
+      "physical_feel": "Observation not provided",
+      "ribbon_test": "Not performed",
+      "drainage_speed": "Uncertain",
+      "moisture_retention": "Uncertain",
+      "aeration": "Uncertain",
+      "nutrient_leaching": "Uncertain",
+      "suitable_crops": [],
+      "management_guidelines": "Conduct the simple 2-minute finger feel or jar sedimentation test documented in the Soil Identification Guide."
+    }
+  ],
+  "colors": [
+    {
+      "id": "Red",
+      "name": "Red Soil",
+      "indicator_meaning": "Rich in oxidized iron compounds (hematite). Common in Eastern and Southern Dry Zones (Alfisols). Typically light to medium textured, well-drained, acidic to neutral.",
+      "caution": "Colour is an indicator of mineral composition and drainage state, not an exact chemical measurement of NPK or pH."
+    },
+    {
+      "id": "Reddish brown",
+      "name": "Reddish Brown",
+      "indicator_meaning": "Transition soil with moderate organic matter and iron oxides. Good general fertility and balanced structure.",
+      "caution": "Colour is an indicator of mineral composition, not an exact chemical measurement."
+    },
+    {
+      "id": "Dark black",
+      "name": "Dark Black / Regur",
+      "indicator_meaning": "Vertisols rich in montmorillonite clay. High swelling and shrinkage characteristics. Typical of Northern Karnataka basalt plains. Holds high residual moisture.",
+      "caution": "Dark colour in tropical Vertisols stems from clay-titanium humus complexes, not solely organic matter."
+    },
+    {
+      "id": "Brown",
+      "name": "Brown Soil",
+      "indicator_meaning": "Medium textured soils with balanced organic matter. Common in river valleys and transitional plateau regions.",
+      "caution": "Treated as a supporting indicator."
+    },
+    {
+      "id": "Yellowish",
+      "name": "Yellowish Soil",
+      "indicator_meaning": "Hydrated ferric oxides (limonite). Often found in lower slope positions or areas with intermittent high water table.",
+      "caution": "Indicates moderate hydration conditions."
+    },
+    {
+      "id": "Grey",
+      "name": "Grey Soil",
+      "indicator_meaning": "Common in low-lying depressions or areas experiencing prolonged wetness (gleying). High silt or reduced iron.",
+      "caution": "Check for drainage issues before selecting waterlogging-sensitive crops."
+    },
+    {
+      "id": "Light sandy",
+      "name": "Light Sandy / Pale",
+      "indicator_meaning": "Coarse quartz sand with low iron and organic content. Very fast draining.",
+      "caution": "Requires organic enrichment."
+    },
+    {
+      "id": "Mixed",
+      "name": "Mixed Color",
+      "indicator_meaning": "Patches of red, brown, and gravel common in undulating Deccan terrain.",
+      "caution": "Treated as heterogeneous supporting indicator."
+    },
+    {
+      "id": "Unknown",
+      "name": "Unknown Color",
+      "indicator_meaning": "Farmer did not record color.",
+      "caution": "Engine applies uncertainty handling."
+    }
+  ],
+  "drainage_options": [
+    { "id": "Water drains quickly", "description": "Rainwater disappears into soil within minutes. Typical of sandy and gravelly soils." },
+    { "id": "Water drains moderately", "description": "Water infiltrates steadily without pooling for long. Ideal for most field crops." },
+    { "id": "Water remains for several hours", "description": "Water stands in puddles for 3 to 12 hours after heavy shower before soaking in." },
+    { "id": "Water remains for one or more days", "description": "Water stagnates for 24 hours or longer, creating squishy wet ground or standing pools." },
+    { "id": "Unknown", "description": "Drainage rate not observed." }
+  ],
+  "moisture_retention_options": [
+    { "id": "Soil dries quickly", "description": "Surface becomes completely dry and dusty within 1 to 2 sunny days after rain." },
+    { "id": "Soil retains moisture for a short period", "description": "Stays damp for 3 to 5 days before drying." },
+    { "id": "Soil retains moisture for several days", "description": "Holds workable dampness for a week or more; cracks appear slowly." },
+    { "id": "Unknown", "description": "Moisture duration not observed." }
+  ],
+  "depth_options": [
+    { "id": "Shallow", "description": "Less than 25 cm before striking rock, gravel, or hard pan. Restricts taproot development." },
+    { "id": "Medium", "description": "25 to 75 cm depth of workable soil. Suitable for most annual field crops." },
+    { "id": "Deep", "description": "Greater than 75 cm depth. Allows deep rooting crops (Sugarcane, Cotton, Red Gram, Fruit trees) to thrive." },
+    { "id": "Unknown", "description": "Soil depth not measured." }
+  ]
+}
